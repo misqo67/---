@@ -269,8 +269,8 @@ export default function Index() {
             {/* ===== 方案A：半浮层蒙层 ===== */}
             {scheme === "half" && (
               <div
-                className="absolute inset-0 z-20 bg-black/45 transition-opacity duration-300"
-                style={{ opacity: ace !== "closed" ? 1 : 0, pointerEvents: ace === "half" ? "auto" : "none" }}
+                className="absolute inset-0 z-20 transition-opacity duration-300"
+                style={{ background: "rgba(17, 17, 17, 0.9)", opacity: ace !== "closed" ? 1 : 0, pointerEvents: ace === "half" ? "auto" : "none" }}
                 onClick={() => {
                   if (ace === "half") closeAce();
                 }}
