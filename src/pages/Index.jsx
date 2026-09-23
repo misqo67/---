@@ -354,9 +354,12 @@ export default function Index() {
             )}
 
             {/* ===== 悬浮方案切换气泡 ===== */}
-            <div className="absolute z-50 flex flex-col items-end" style={{ right: 10, top: "40%" }}>
+            <div className="absolute z-50 flex flex-col items-end" style={{ right: 8, top: "44%" }}>
               {bubbleOpen && (
-                <div className="mb-2 flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg">
+                <div
+                  className="mb-1.5 flex flex-col overflow-hidden"
+                  style={{ borderRadius: 12, background: "rgba(17, 17, 17, 0.8)", backdropFilter: "blur(4px)" }}
+                >
                   {SCHEMES.map((s, i) => (
                     <button
                       key={s.id}
@@ -364,11 +367,11 @@ export default function Index() {
                         setBubbleOpen(false);
                         switchScheme(s.id);
                       }}
-                      className="text-left px-4 py-2.5 text-[13px] active:bg-black/5"
+                      className="text-left px-3 py-1.5 text-[11px] active:opacity-70"
                       style={{
-                        color: scheme === s.id ? "#ff6633" : "#333",
+                        color: scheme === s.id ? "#ff6633" : "rgba(255,255,255,0.85)",
                         fontWeight: scheme === s.id ? 600 : 400,
-                        borderBottom: i < SCHEMES.length - 1 ? "1px solid #f0f0f0" : "none",
+                        borderBottom: i < SCHEMES.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
                       }}
                     >
                       {"方案" + "一二三"[i]}
@@ -379,11 +382,18 @@ export default function Index() {
               )}
               <button
                 onClick={() => setBubbleOpen((v) => !v)}
-                className="flex items-center bg-white/95 shadow-lg active:bg-white"
-                style={{ borderRadius: 18, padding: "7px 12px", fontSize: 12, color: "#333", border: "1px solid rgba(0,0,0,0.06)" }}
+                className="flex items-center active:opacity-80"
+                style={{
+                  borderRadius: 14,
+                  padding: "4px 10px",
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.9)",
+                  background: "rgba(17, 17, 17, 0.8)",
+                  backdropFilter: "blur(4px)",
+                }}
               >
                 切换方案
-                <span style={{ marginLeft: 4, color: "#999", fontSize: 11 }}>{bubbleOpen ? "<" : ">"}</span>
+                <span style={{ marginLeft: 3, fontSize: 10, color: "rgba(255,255,255,0.55)" }}>{bubbleOpen ? "<" : ">"}</span>
               </button>
             </div>
           </div>
