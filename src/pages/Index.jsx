@@ -6,6 +6,7 @@ import aceIconImg from "../assets/ace-icon.webp";
 
 const SCREEN_W = 390;
 const SCREEN_H = 844;
+const DISPLAY_SCALE = 2; // 页面演示固定按 780×1688（2x）呈现
 const HALF_RATIO = 0.8;
 const ACE_TOP_CROP = 40; // 方案A半浮层态裁掉的头部状态栏区域(px)，展开成整页时恢复
 const HALF_H = Math.round(SCREEN_H * HALF_RATIO);
@@ -27,7 +28,7 @@ export default function Index() {
   const [aceLoaded, setAceLoaded] = useState(false); // 王牌菜榜页是否加载完成
   const [iconBounceKey, setIconBounceKey] = useState(0); // 返回时王牌菜榜 icon 扫光动效重放计数
   const [animOn, setAnimOn] = useState(true); // 切换方案瞬间关闭过渡，避免穿帮
-  const [scale, setScale] = useState(1);
+  const [bubbleOpen, setBubbleOpen] = useState(false); // 悬浮方案切换气泡展开态
   const dragRef = useRef(null);
   const iframeRef = useRef(null);
   const schemeRef = useRef(scheme);
@@ -36,17 +37,7 @@ export default function Index() {
   // 王牌菜榜自包含单文件（素材已内联），用 blob URL 承载，部署后不依赖 public 目录
   const aceDocUrl = useMemo(() => URL.createObjectURL(new Blob([aceStandaloneRaw], { type: "text/html" })), []);
 
-  // 舞台缩放适配窗口
-  useEffect(() => {
-    const fit = () => {
-      const availH = window.innerHeight - 170;
-      const availW = window.innerWidth - 24;
-      setScale(Math.max(0.35, Math.min(1, availH / SCREEN_H, availW / SCREEN_W)));
-    };
-    fit();
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, []);
+  // 演示画面固定 780×1688（2x），居中呈现
 
   const closeAce = useCallback(() => {
     setAce("closed");
@@ -112,7 +103,7 @@ export default function Index() {
   };
   const onHandleMove = (e) => {
     if (!dragRef.current) return;
-    const dy = e.clientY - dragRef.current.startY;
+    const dy = (e.clientY - dragRef.current.startY) / DISPLAY_SCALE;
     const next = Math.min(SCREEN_H, Math.max(220, HALF_H - dy));
     setSheetH(next);
   };
@@ -169,20 +160,7 @@ export default function Index() {
       {/* 顶部标题与方案切换 */}
       <div className="w-full flex flex-col items-center pt-6 pb-3 px-4">
         <div className="text-[17px] font-semibold text-[#1f1f1f]">王牌菜榜 · 榜单中心承接方案示意</div>
-        <div className="text-[12px] text-[#999] mt-1">首页「点评榜单」进入榜单中心页后，自动演示当前方案的承接动效；切换上方方案可重播对比</div>
-        <div className="mt-3 flex items-center gap-1 bg-white rounded-full p-1 shadow-sm border border-[#eee]">
-          {SCHEMES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => switchScheme(s.id)}
-              className={`px-4 py-1.5 rounded-full text-[13px] transition-colors ${
-                scheme === s.id ? "bg-[#ff6633] text-white font-medium" : "text-[#666] hover:text-[#ff6633]"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <div className="text-[12px] text-[#999] mt-1">首页「点评榜单」进入榜单中心页后，自动演示当前方案的承接动效；点击页面右侧「切换方案」气泡可切换方案重播对比</div>
       </div>
 
       {/* 手机舞台 */}
@@ -190,8 +168,8 @@ export default function Index() {
         <div
           className="relative rounded-[44px] bg-black shadow-2xl"
           style={{
-            width: SCREEN_W * scale + 16,
-            height: SCREEN_H * scale + 16,
+            width: SCREEN_W * DISPLAY_SCALE + 16,
+            height: SCREEN_H * DISPLAY_SCALE + 16,
             padding: 8,
           }}
         >
@@ -200,7 +178,7 @@ export default function Index() {
             style={{
               width: SCREEN_W,
               height: SCREEN_H,
-              transform: `scale(${scale})`,
+              transform: `scale(${DISPLAY_SCALE})`,
               transformOrigin: "top left",
               borderRadius: 36,
             }}
@@ -376,6 +354,40 @@ export default function Index() {
                 }}
               />
             )}
+
+            {/* ===== 悬浮方案切换气泡 ===== */}
+            <div className="absolute z-50 flex flex-col items-end" style={{ right: 10, top: "40%" }}>
+              {bubbleOpen && (
+                <div className="mb-2 flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg">
+                  {SCHEMES.map((s, i) => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setBubbleOpen(false);
+                        switchScheme(s.id);
+                      }}
+                      className="text-left px-4 py-2.5 text-[13px] active:bg-black/5"
+                      style={{
+                        color: scheme === s.id ? "#ff6633" : "#333",
+                        fontWeight: scheme === s.id ? 600 : 400,
+                        borderBottom: i < SCHEMES.length - 1 ? "1px solid #f0f0f0" : "none",
+                      }}
+                    >
+                      {"方案" + "一二三"[i]}
+                      {scheme === s.id ? " ✓" : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setBubbleOpen((v) => !v)}
+                className="flex items-center bg-white/95 shadow-lg active:bg-white"
+                style={{ borderRadius: 18, padding: "7px 12px", fontSize: 12, color: "#333", border: "1px solid rgba(0,0,0,0.06)" }}
+              >
+                切换方案
+                <span style={{ marginLeft: 4, color: "#999", fontSize: 11 }}>{bubbleOpen ? "<" : ">"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
