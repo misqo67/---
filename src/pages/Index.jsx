@@ -245,7 +245,7 @@ export default function Index() {
             {scheme === "half" && (
               <div
                 className="absolute inset-0 z-20 transition-opacity duration-300"
-                style={{ background: "rgba(17, 17, 17, 0.9)", opacity: ace !== "closed" ? 1 : 0, pointerEvents: ace === "half" ? "auto" : "none" }}
+                style={{ background: "rgba(17, 17, 17, 0.8)", opacity: ace !== "closed" ? 1 : 0, pointerEvents: ace === "half" ? "auto" : "none" }}
                 onClick={() => {
                   if (ace === "half") closeAce();
                 }}
@@ -359,7 +359,7 @@ export default function Index() {
         {/* ===== 悬浮方案切换（屏幕左缘，外露一小部分）===== */}
             <div
               className="absolute z-50"
-              style={{ left: -7 * scale, top: "calc(44% + 100px)", transform: `scale(${scale})`, transformOrigin: "top left" }}
+              style={{ left: -7 * scale, top: "calc(44% + 100px)", transform: `scale(${scale * 1.2})`, transformOrigin: "top left" }}
             >
               {bubbleOpen && (
                 <div
