@@ -363,7 +363,7 @@ export default function Index() {
               {bubbleOpen && (
                 <div
                   className="absolute flex flex-col overflow-hidden"
-                  style={{ left: "calc(100% + 6px)", top: 0, borderRadius: 12, background: "rgba(17, 17, 17, 0.8)", backdropFilter: "blur(4px)" }}
+                  style={{ left: 0, top: "calc(100% + 6px)", borderRadius: 12, background: "rgba(17, 17, 17, 0.8)", backdropFilter: "blur(4px)" }}
                 >
                   {SCHEMES.map((s, i) => (
                     <button
