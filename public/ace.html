@@ -1382,12 +1382,17 @@ baizhanji: 'assets/header-full-baizhanji.webp',
 xiaolongbao: 'assets/header-full-xiaolongbao.webp',
 hongsharou: 'assets/header-full-hongsharou.webp'
 };
-// 提前解码所有商户列表头图，避免首次切换时背景图等待网络或图片解码而短暂留白。
-Object.keys(transitionHeaderImageMap).forEach(function(key) {
+// 仅预解码首屏（白斩鸡）头图；其余分类头图在首次切换时再解码，避免进入时预下载。
+function warmTransitionHeader(key) {
+  var src = transitionHeaderImageMap[key];
+  if (!src || warmTransitionHeader.done[key]) return;
+  warmTransitionHeader.done[key] = true;
   var image = new Image();
-  image.src = transitionHeaderImageMap[key];
+  image.src = src;
   if (image.decode) image.decode().catch(function() {});
-});
+}
+warmTransitionHeader.done = {};
+warmTransitionHeader('baizhanji');
 
 function commitCategory(key) {
       currentCategory = key;
@@ -1408,6 +1413,7 @@ function commitCategory(key) {
         return;
       }
 
+      warmTransitionHeader(key);
       hero.classList.add('hero--collapsed');
       hero.style.maxHeight = '0px';
       hero.style.height = '0px';
@@ -1687,12 +1693,7 @@ detailOverlay.appendChild(detailOverlayImage);
 detailOverlay.appendChild(detailOverlayBack);
 detailOverlay.appendChild(detailRankBack);
 document.body.appendChild(detailOverlay);
-// 页面空闲时只解码详情切图，不创建和渲染多个全屏 iframe。
-Object.keys(detailImageMap).forEach(function(href) {
-  var image = new Image();
-  image.src = detailImageMap[href];
-  if (image.decode) image.decode().catch(function() {});
-});
+// 商详切图改为点开时再请求+解码，不再空闲预下载，降低进入页面的流量。
 function closeDetailOverlay() {
   detailOverlay.className = 'detail-page-overlay';
   detailOverlay.scrollTop = 0;
@@ -1735,6 +1736,7 @@ document.querySelectorAll('.shop-card-img[data-href]').forEach(function(card) {
     // 同一图层直接换入预解码切图；不等待页面请求、iframe 布局或首帧绘制。
     detailOverlay.scrollTop = 0;
     detailOverlayImage.src = detailImageMap[href];
+    if (detailOverlayImage.decode) detailOverlayImage.decode().catch(function() {});
     detailOverlay.className = 'detail-page-overlay detail-page-overlay--visible' +
       (href === 'shop-detail-yidao.html' ? ' detail-page-overlay--yidao' : '');
   });
