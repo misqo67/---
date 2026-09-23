@@ -279,11 +279,12 @@ export default function Index() {
 
             {/* ===== 王牌菜榜常驻面板（iframe 预加载，仅加载一次）===== */}
             <div
-              className="absolute left-0 right-0 bottom-0 z-30 bg-white overflow-hidden"
+              className="absolute left-0 right-0 bottom-0 z-30 overflow-hidden"
               style={{
                 height: panelHeight,
                 borderTopLeftRadius: scheme === "half" && ace === "half" && !dragging ? 16 : 0,
                 borderTopRightRadius: scheme === "half" && ace === "half" && !dragging ? 16 : 0,
+                background: "#1A1008",
                 transform: ace === "closed" ? closedTransform : "translate(0, 0)",
                 transition: dragging || !animOn ? "none" : `transform 0.38s ${EASE}, height 0.38s ${EASE}, border-radius 0.3s`,
                 boxShadow: scheme === "left" ? "-8px 0 30px rgba(0,0,0,0.18)" : "0 -8px 30px rgba(0,0,0,0.18)",
