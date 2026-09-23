@@ -358,7 +358,7 @@ export default function Index() {
         {/* ===== 悬浮方案切换（屏幕左缘，外露一小部分）===== */}
             <div
               className="absolute z-50"
-              style={{ left: -7 * scale, top: "44%", transform: `scale(${scale})`, transformOrigin: "top left" }}
+              style={{ left: -7 * scale, top: "calc(44% + 100px)", transform: `scale(${scale})`, transformOrigin: "top left" }}
             >
               {bubbleOpen && (
                 <div
