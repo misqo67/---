@@ -11,9 +11,9 @@ const ACE_TOP_CROP = 40; // 方案A半浮层态裁掉的头部状态栏区域(px
 const HALF_H = Math.round(SCREEN_H * HALF_RATIO);
 
 const SCHEMES = [
-  { id: "half", label: "方案A · 半浮层" },
-  { id: "up", label: "方案B · 上滑整页" },
-  { id: "left", label: "方案C · 左滑整页" },
+  { id: "half", label: "方案A · 半浮层", short: "方案1" },
+  { id: "up", label: "方案B · 上滑整页", short: "方案2" },
+  { id: "left", label: "方案C · 左滑整页", short: "方案3" },
 ];
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)"; /* 快出 + 明显缓收，上滑/左滑更利落 */
@@ -379,8 +379,7 @@ export default function Index() {
                         borderBottom: i < SCHEMES.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
                       }}
                     >
-                      {"方案" + "一二三"[i]}
-                      {scheme === s.id ? " ✓" : ""}
+                      {s.short}
                     </button>
                   ))}
                 </div>
@@ -398,9 +397,16 @@ export default function Index() {
                   backdropFilter: "blur(4px)",
                 }}
               >
-                切换
-                <br />
-                方案
+                {SCHEMES.find((s) => s.id === scheme).short}
+                <svg
+                  width="10"
+                  height="6"
+                  viewBox="0 0 10 6"
+                  fill="none"
+                  style={{ display: "block", margin: "2px auto 0" }}
+                >
+                  <path d="M1 1l4 4 4-4" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             </div>
         </div>
