@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  <link rel="preload" as="image" href="assets/header-full-baizhanji.webp">
+  <link rel="preload" as="image" href="assets/header-full-xiaolongbao.webp">
+  <link rel="preload" as="image" href="assets/header-full-hongsharou.webp">
+  <link rel="prefetch" as="document" href="shop-detail.html">
+  <link rel="prefetch" as="document" href="shop-detail-renhe.html">
+  <link rel="prefetch" as="document" href="shop-detail-yijia.html">
+  <link rel="prefetch" as="document" href="shop-detail-heji.html">
+<link rel="prefetch" as="image" href="assets/shop-detail-yidao.webp">
+<link rel="prefetch" as="image" href="assets/shop-detail-full.webp">
+<link rel="prefetch" as="image" href="assets/shop-detail-renhe.webp">
+  <link rel="prefetch" as="image" href="assets/shop-detail-yijia.webp">
+  <link rel="prefetch" as="image" href="assets/shop-detail-heji.webp">
+  <title>王牌菜榜</title>
+  <style>
+    /* ============================================================
+       王牌菜榜 · 方案二（单页 Tab 切换）
+       设计基准：780px @2x → vw 方案
+       换算公式：设计稿 px ÷ 780 × 100 = vw
+
+       与方案一的核心差异：
+       方案一是"点击分类跳转到独立的分类榜单页（整页跳转/展开动效）"，
+       方案二是"同一主页面内，通过分类 Tab 在【全部-瀑布流】与
+       【单分类-商户列表】两种内容态之间切换"，不发生页面跳转，
+       只有点击具体商户卡片时才跳转到商户详情页。
+       ============================================================ */
+
+    /* ---------- Reset ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+width: 100%;
+overflow-anchor: none;
+font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Noto Sans CJK SC', sans-serif;
+      background: #FFFFFF;
+      color: #111111;
+      -webkit-font-smoothing: antialiased;
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+    }
+    ul, li { list-style: none; }
+    img { display: block; max-width: 100%; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ============================================================
+       模块 A · 头图区（含导航栏），仅在【全部】Tab 下完整展示；
+       切到具体分类 Tab 后头图区收起，只保留吸顶层（状态栏+导航栏+分类Tab）
+       ============================================================ */
+    .hero {
+      position: relative;
+      width: 100%;
+      background: #1A1008;
+      overflow: hidden;
+      padding-bottom: 6.15vw; /* 48px — 深色底充分延伸，完整衬托白色圆角，与方案一保持一致 */
+      max-height: 500vw; /* 足够大的上限，配合 transition 做展开/收起动画 */
+      transition: max-height 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hero--collapsed {
+      max-height: 0 !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      overflow: hidden;
+      overflow-anchor: none;
+    }
+
+    .hero__bg {
+      position: relative;
+      width: 100%;
+      height: 85.47vw; /* 1000/1170 × 100vw */
+      overflow: hidden;
+    }
+    .hero__bg video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 状态栏安全区：108px @2x */
+    .status-bar {
+      position: relative;
+      width: 100%;
+      height: 13.85vw; /* 108px @2x */
+      flex-shrink: 0;
+    }
+    .hero .status-bar {
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 10;
+    }
+
+    /* 导航栏：88px @2x */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      height: 11.28vw; /* 88px @2x */
+      padding: 0 3.08vw; /* 0 24px */
+    }
+    .hero .nav-bar {
+      position: absolute;
+      top: 13.85vw;
+      left: 0;
+      width: 100%;
+      z-index: 10;
+    }
+    .nav-bar__left {
+      display: flex;
+      align-items: center;
+      gap: 1.54vw; /* 12px */
+    }
+.nav-bar__back {
+width: 7.44vw; /* 58px @2x */
+height: 7.44vw;
+cursor: default;
+pointer-events: none;
+}
+    .nav-bar__back img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .nav-bar__city {
+      width: 15.38vw; /* 120px @2x */
+      height: 7.44vw; /* 58px @2x */
+    }
+    .nav-bar__city img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+    .nav-bar__right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 2.05vw; /* 16px */
+    }
+    .nav-bar__icon {
+      width: 7.44vw; /* 58px @2x */
+      height: 7.44vw;
+    }
+    .nav-bar__icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    /* 吸顶态导航栏中间 logo */
+    .nav-bar__logo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 18.97vw; /* 148px @2x */
+      height: 4.72vw; /* 36.86px @2x */
+      display: none;
+    }
+    .nav-bar__logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .sticky-header .nav-bar__logo {
+      display: block;
+    }
+    /* 商户列表页沿用主页吸顶态的「王牌菜榜」切图，不切换为菜品文字标题。 */
+    .nav-bar__title {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4.10vw; /* 32px */
+      font-weight: 600;
+      color: #FFFFFF;
+      display: none;
+      white-space: nowrap;
+    }
+    .sticky-header--category .nav-bar__logo { display: block; }
+    .sticky-header--category .nav-bar__title { display: none; }
+
+    /* slogan 绝对定位在背景图底部 */
+    .hero__slogan {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      padding-bottom: 1.54vw; /* 12px */
+      font-size: 3.08vw; /* 24px */
+      font-weight: 400;
+      color: rgba(255,255,255,0.65);
+      font-style: italic;
+      letter-spacing: 0.26vw; /* 2px */
+      z-index: 3;
+    }
+
+    /* ============================================================
+       模块 C · 菜品分类横滑 Tab（首屏 "全部" 一定包含在内）
+       ============================================================ */
+    .category-tabs {
+      position: relative;
+      width: 100%;
+      background: transparent;
+      padding: 2.05vw 0 2.56vw; /* 16px 0 20px */
+    }
+    .hero .category-tabs {
+      position: absolute;
+      bottom: 19.49vw; /* 上移至贴近视频内容 = 152px @2x，与方案一保持一致 */
+      left: 0;
+      padding-bottom: 2.56vw;
+    }
+
+    /* ============================================================
+       吸顶层：状态栏 + 导航栏 + 分类Tab
+       页面下滑超过头图区域后，或切到具体分类 Tab 时，
+       整体固定吸附在顶部
+       ============================================================ */
+.sticky-header {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background: #1A1008;
+z-index: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .sticky-header--visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .sticky-header .status-bar {
+      position: relative;
+      height: 13.85vw;
+    }
+    .sticky-header .nav-bar {
+      position: relative;
+      top: 0;
+    }
+    .sticky-header .category-tabs {
+      position: relative;
+      bottom: 0;
+      padding-bottom: 2.05vw;
+    }
+    /* 吸顶后固定在 Tab 下方的圆角切图（780 × 84 @2x）。 */
+    .sticky-header__corner {
+      position: absolute;
+      z-index: 1;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: auto;
+      display: block;
+      pointer-events: none;
+      opacity: 1;
+    }
+
+    .category-tabs__wrapper {
+      position: relative;
+    }
+    .category-tabs__scroll {
+      display: flex;
+      align-items: flex-start;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 3.08vw; /* 0 24px */
+      gap: 6.41vw;
+      scrollbar-width: none;
+    }
+    .category-tabs__scroll::-webkit-scrollbar { display: none; }
+    /* 吸顶态：将“全部”锁在左侧，其余菜品 Tab 在右侧横向滑动。 */
+    .sticky-header .category-tabs__scroll {
+      padding-left: 0;
+      padding-right: 18.85vw;
+    }
+    .sticky-header .category-tab:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 4;
+      padding-left: 3.08vw;
+      padding-right: 3.08vw;
+      margin-right: -3.08vw;
+      background: #1A1008;
+    }
+
+    .category-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .category-tab__img-wrap {
+      width: 12.82vw; /* 100px @2x */
+      height: 12.82vw;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-bottom: 1.03vw; /* 8px */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .category-tab__img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    .category-tab__label {
+      font-size: 3.33vw; /* 26px */
+      font-weight: 400;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap;
+      line-height: 4.62vw; /* 36px */
+    }
+    .category-tab--active .category-tab__label {
+      color: #FF6633;
+      font-weight: 600;
+    }
+    /* “全部”Tab 用文字图标代替圆形图片 */
+    .category-tab__img-wrap--all {
+      background: rgba(255,255,255,0.12);
+    }
+    .category-tab__img-wrap--all span {
+      font-size: 3.59vw;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+    .category-tab--active .category-tab__img-wrap--all span {
+      color: #FF6633;
+    }
+
+    /* 右侧展开按钮 */
+    .category-tabs__expand {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 18.85vw; /* 147px @2x */
+      height: 100%;
+      z-index: 2;
+      cursor: pointer;
+    }
+    .category-tabs__expand-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .category-tabs__expand-arrow {
+      position: absolute;
+      left: 72.7%;
+      top: 51.2%;
+      width: 5.13vw; /* 40px @2x */
+      height: 3.85vw; /* 30px @2x */
+      object-fit: contain;
+      transform: translate(-50%, -50%) rotate(0deg);
+      transform-origin: center;
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      display: block;
+    }
+    .category-tabs__expand--active .category-tabs__expand-arrow {
+      transform: translate(-50%, -50%) rotate(180deg);
+    }
+
+    /* ============================================================
+       展开面板：菜品分类下拉（与方案一保持一致的交互）
+       ============================================================ */
+    .expand-panel {
+      visibility: hidden;
+      pointer-events: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 200;
+    }
+    .expand-panel--visible {
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .expand-panel__mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.35);
+      opacity: 0;
+      transition: opacity 0.32s ease;
+    }
+    .expand-panel--visible .expand-panel__mask {
+      opacity: 1;
+    }
+    .expand-panel__content {
+      position: relative;
+      z-index: 1;
+      background: #FFFFFF;
+      width: 100%;
+      max-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 0 0 3.08vw 3.08vw;
+      opacity: 0;
+      transition: max-height 0.36s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease;
+    }
+    .expand-panel--visible .expand-panel__content {
+      max-height: 141.03vw;
+      opacity: 1;
+    }
+    .expand-panel__nav {
+      display: flex;
+      align-items: center;
+      height: 11.28vw;
+      padding: 0 3.08vw;
+      padding-top: 13.85vw;
+      background: #FFFFFF;
+    }
+    .expand-panel__nav-left {
+      display: flex;
+      align-items: center;
+      gap: 1.54vw;
+    }
+    .expand-panel__nav-back { width: 7.44vw; height: 7.44vw; }
+    .expand-panel__nav-back img { width: 100%; height: 100%; object-fit: contain; }
+    .expand-panel__nav-city { height: 7.44vw; }
+    .expand-panel__nav-city img { height: 100%; width: auto; object-fit: contain; }
+    .expand-panel__nav-logo {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 4.72vw;
+    }
+    .expand-panel__nav-logo img { height: 100%; width: auto; object-fit: contain; }
+    .expand-panel__nav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 2.05vw;
+    }
+    .expand-panel__nav-icon { width: 7.44vw; height: 7.44vw; }
+    .expand-panel__nav-icon img { width: 100%; height: 100%; object-fit: contain; }
+    .expand-panel__search {
+      margin: 2.56vw 3.08vw;
+      margin-top: 7.18vw;
+      height: 9.23vw;
+      background: #F5F5F5;
+      border-radius: 4.62vw;
+      display: flex;
+      align-items: center;
+      padding: 0 3.08vw;
+      gap: 1.54vw;
+    }
+    .expand-panel__search-icon { width: 4.10vw; height: 4.10vw; flex-shrink: 0; }
+    .expand-panel__search-icon svg { width: 100%; height: 100%; fill: #BBBBBB; }
+    .expand-panel__search-text { font-size: 3.33vw; color: #BBBBBB; }
+    .expand-panel__section { padding: 3.08vw 3.08vw 0; margin-bottom: 4.10vw; }
+    .expand-panel__section-title { font-size: 4.10vw; font-weight: 600; color: #111111; margin-bottom: 3.08vw; }
+    .expand-panel__grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3.08vw 0; }
+    .expand-panel__grid-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .expand-panel__grid-img { width: 15.38vw; height: 15.38vw; border-radius: 50%; overflow: hidden; margin-bottom: 1.28vw; }
+    .expand-panel__grid-img img { width: 100%; height: 100%; object-fit: cover; }
+    .expand-panel__grid-label { font-size: 3.08vw; color: #111111; white-space: nowrap; }
+    .expand-panel__grid-label--active { color: #FF6633; }
+    .expand-panel__wish { padding: 5.13vw 3.08vw 6.15vw; text-align: center; }
+    .expand-panel__wish-text { font-size: 3.59vw; color: #666666; margin-bottom: 3.08vw; }
+    .expand-panel__wish-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 1.28vw;
+      height: 10.26vw; padding: 0 7.69vw; border: 0.26vw solid #FF6633; border-radius: 5.13vw;
+      background: #FFFFFF; color: #FF6633; font-size: 3.59vw; font-weight: 500; cursor: pointer;
+    }
+    .expand-panel__wish-btn svg { width: 4.10vw; height: 4.10vw; fill: #FF6633; }
+
+    /* ============================================================
+       内容区容器：两种内容态互斥展示
+       ============================================================ */
+    .content-area {
+      position: relative;
+    }
+
+    /* ---------- 榜单卡片 → 商户列表的共享元素过渡 ---------- */
+    .category-transition {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      visibility: hidden;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .category-transition--active { visibility: visible; }
+    .category-transition__mask {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: #000000;
+      opacity: 0;
+      transition: opacity 0.18s ease-out;
+    }
+.category-transition--phase-card .category-transition__mask { opacity: 0; }
+.category-transition--phase-card .category-transition__card { box-shadow: none; }
+.category-transition--phase-sheet .category-transition__mask { opacity: 0; }
+/* 承接区域在整个转场中维持纯白，避免空白区透出灰色页面底。 */
+.category-transition--active { background: #FFFFFF; }
+    .category-transition__card {
+      position: absolute;
+      z-index: 1;
+      overflow: hidden;
+      background-color: #FFFFFF;
+      background-repeat: no-repeat;
+      background-position: center top;
+      background-size: 100% auto;
+      border-radius: 20px !important;
+      box-shadow: none;
+      transition: left 0.34s cubic-bezier(0.22, 0.8, 0.25, 1), top 0.34s cubic-bezier(0.22, 0.8, 0.25, 1), width 0.34s cubic-bezier(0.22, 0.8, 0.25, 1), height 0.34s cubic-bezier(0.22, 0.8, 0.25, 1);
+    }
+    .category-transition__card .category-list__header-full,
+    .category-transition__card .category-transition__header-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .category-transition__sheet {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      background: #FFFFFF;
+      border-radius: 20px 20px 0 0;
+      clip-path: inset(0 0 100% 0 round 20px 20px 0 0);
+      transition: top 0.34s cubic-bezier(0.22, 0.8, 0.25, 1), clip-path 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* 商户内容位于共享头图之上：白色承接区先铺底，列表再从头图下沿覆盖进来，
+       从而避免头图在首卡入场时遮住列表而留下空白帧。 */
+    .category-transition__content { position: relative; z-index: 3; }
+    .category-transition__content .category-list__main { margin-top: 0; }
+    .category-transition--phase-sheet .category-transition__sheet {
+      clip-path: inset(0 0 0 0 round 20px 20px 0 0);
+    }
+    /* 头图抵达终点后保持可见；不执行淡出，避免用户感知为切图消失后重新出现。 */
+    .category-transition--handoff .category-transition__card {
+      opacity: 1;
+    }
+    /* 反向列表使用独立的全屏视觉层渐隐，底层始终保留已绘制好的首页。 */
+    .category-transition--reverse { background: transparent; }
+    .category-transition--reverse .category-transition__sheet {
+      display: none;
+    }
+    .category-transition--reverse .category-transition__content {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+      background: #FFFFFF;
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      transition: opacity 0.28s cubic-bezier(0.22, 0.75, 0.25, 1), transform 0.28s cubic-bezier(0.22, 0.75, 0.25, 1);
+    }
+    .category-transition--reverse.category-transition--reverse-fade .category-transition__content {
+      opacity: 0;
+      transform: translate3d(0, -4px, 0);
+    }
+    .rank-card--reverse-return {
+      transform: scale(1.012);
+      transition: transform 0.32s cubic-bezier(0.22, 0.8, 0.25, 1);
+      will-change: transform;
+    }
+
+    /* ---------- 内容态 1：【全部】瀑布流（榜单卡片纵向罗列） ---------- */
+    .rank-list-wrapper {
+      margin-top: -19.49vw; /* 向上覆盖进 hero 深色区域，白色圆角完整衬托 */
+      border-radius: 5.13vw 5.13vw 0 0; /* 顶部圆角 20pt（40px@2x） */
+      background: #FFFFFF;
+      overflow: hidden;
+      position: relative;
+      z-index: 5;
+      transition: opacity 0.2s ease;
+    }
+    .rank-list {
+      padding: 3.08vw 3.08vw 2.05vw;
+      display: flex;
+      flex-direction: column;
+      gap: 3.08vw;
+      background: #FFFFFF;
+    }
+    .rank-card {
+      background: #FFFFFF;
+      border-radius: 5.13vw;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    /* 转场期间由共享元素浮层完全接管视觉，避免原卡与浮层的边缘叠绘造成圆角跳变。 */
+    .rank-card--transitioning { visibility: hidden; }
+    .rank-card__header {
+      width: 100%;
+      padding-top: 68.3%;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .rank-card__header--split {
+      position: relative;
+      background-image: none;
+    }
+    .rank-card__header--split .rank-card__header-inner {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .rank-card__header--split .rank-card__header-top,
+    .rank-card__header--split .rank-card__header-bottom {
+      display: block;
+      width: 100%;
+      height: auto;
+      flex-shrink: 0;
+    }
+    .rank-card__header--split .rank-card__header-mid {
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .rank-card__shops {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 2.05vw;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 0 3.08vw 2.56vw;
+      margin-top: -39.49vw;
+    }
+    .rank-card__shops::-webkit-scrollbar { display: none; }
+    .shop-card {
+      flex-shrink: 0;
+      width: 30.77vw;
+      cursor: pointer;
+    }
+    .shop-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 1.54vw;
+    }
+
+    /* ---------- 内容态 2：【单分类】商户列表（吸顶+筛选栏+完整商户卡） ---------- */
+.category-list {
+display: none;
+overflow-anchor: none;
+}
+/* 转场浮层仍显示时先隐藏真实头图，避免与共享头图叠加而出现二次头部。 */
+.category-list--transitioning-header .category-list__header {
+visibility: hidden;
+}
+/* 临时承接层结束的短暂交接中，隐藏真实商户内容，避免第一张卡被重复渲染成跳变。 */
+.category-list--handoff .category-list__main {
+visibility: hidden;
+}
+.category-list {
+background: #1A1008; /* 深色底，露出头图圆角外侧的直角区域，与吸顶栏背景一致 */
+      position: relative;
+      z-index: 5;
+    }
+    .category-list--active {
+      display: block;
+    }
+    .category-list__header {
+      position: relative;
+      width: 100%;
+      background: #FFFFFF;
+      margin-top: 47.69vw; /* 为吸顶栏（状态栏13.85vw+导航栏11.28vw+分类Tab栏22.56vw）预留空间，避免头图被遮挡 */
+      border-radius: 5.13vw; /* 头图顶部圆角 20pt（40px@2x），贴合吸顶栏下方 */
+      overflow: hidden;
+    }
+    .category-list__header-full {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .category-list__header-bg {
+      width: 100%;
+      display: block;
+    }
+    .category-list__header-bg img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .category-list__header-content {
+      position: absolute;
+      top: 12.31vw;
+      left: 4.36vw;
+      z-index: 5;
+    }
+    .category-list__header-text {
+      width: 67.31vw;
+      height: auto;
+      display: block;
+    }
+.category-list__main {
+position: relative;
+z-index: 5;
+  margin-top: -24.87vw; /* 在原基础上再上移6pt（12px@2x），适用于所有商户列表分类页面 */
+background: #FFFFFF; /* 确保列表区域为白色，不受.category-list深色底影响 */
+}
+    .category-list__main--overlap {
+      margin-top: -15.90vw;
+    }
+    .category-list__filters {
+      background: transparent;
+      padding: 2.56vw 4.10vw;
+      display: flex;
+      align-items: center;
+      gap: 2.56vw;
+      position: relative;
+      z-index: 5;
+    }
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.03vw;
+      padding: 1.54vw 3.08vw;
+      border-radius: 5.13vw;
+      background: #FFFFFF;
+      font-size: 3.33vw;
+      font-weight: 400;
+      color: #333333;
+      cursor: pointer;
+      white-space: nowrap;
+      border: none;
+      outline: none;
+    }
+    .filter-tag__arrow {
+      display: inline-block;
+      width: 0; height: 0;
+      border-left: 1.03vw solid transparent;
+      border-right: 1.03vw solid transparent;
+      border-top: 1.28vw solid #999999;
+      margin-top: 0.26vw;
+    }
+    .category-list__shops {
+      background: #FFFFFF;
+      padding: 0 0 0 5.13vw;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 3.08vw;
+      padding-bottom: 3.08vw;
+    }
+    .shop-card-img {
+      width: 92.82vw; /* 定宽724pt（724px@2x），高度不定，等比自适应 */
+      height: auto;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+.shop-card-img:active {
+transform: scale(0.98);
+opacity: 0.85;
+}
+body.page--detail-leaving {
+opacity: 0.7;
+transition: opacity 0.04s ease-out;
+}
+.detail-page-overlay {
+position: fixed;
+inset: 0;
+z-index: 2001;
+background: #F5F5F5;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+opacity: 0;
+visibility: hidden;
+pointer-events: none;
+will-change: opacity;
+transition: opacity 0.08s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.08s;
+}
+.detail-page-overlay--visible {
+opacity: 1;
+visibility: visible;
+pointer-events: auto;
+transition: opacity 0.08s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.detail-page-overlay__img {
+display: block;
+width: 100%;
+height: auto;
+}
+.detail-page-overlay__back {
+position: fixed;
+top: 10.26vw;
+left: 1.28vw;
+width: 12.82vw;
+height: 12.82vw;
+z-index: 1;
+border: 0;
+background: transparent;
+cursor: pointer;
+}
+/* 逸道详情切图中的「王牌菜榜」标签点击热区，返回红烧肉榜商户列表。 */
+.detail-page-overlay__rank-back {
+position: fixed;
+/* 覆盖头图下沿至完整商户信息区；整块区域均可点击返回红烧肉榜。 */
+top: 30vw;
+left: 0;
+width: 100vw;
+height: 76vw;
+z-index: 2;
+display: none;
+border: 0;
+background: transparent;
+cursor: pointer;
+}
+.detail-page-overlay--yidao .detail-page-overlay__rank-back { display: block; }
+    .category-list--stagger .shop-card-img,
+    .category-list--stagger .shop-divider {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+      will-change: opacity, transform;
+    }
+    .category-list--stagger.category-list--stagger-in .shop-card-img,
+    .category-list--stagger.category-list--stagger-in .shop-divider {
+      animation: shop-list-item-in 0.28s cubic-bezier(0.22, 0.75, 0.25, 1) both;
+    }
+/* 首屏卡片在短窗口内依次出现；屏外内容继续错峰，避免首屏留下大面积空白。 */
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(1) { animation-delay: 0ms; }
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(2) { animation-delay: 26ms; }
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(3) { animation-delay: 52ms; }
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(4) { animation-delay: 78ms; }
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(5) { animation-delay: 104ms; }
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(6) { animation-delay: 156ms; }
+.category-list--stagger.category-list--stagger-in .shop-card-img:nth-of-type(7) { animation-delay: 208ms; }
+.category-list--stagger.category-list--stagger-in .shop-divider { animation-delay: 16ms; }
+    @keyframes shop-list-item-in {
+      0% { opacity: 0; transform: translate3d(0, 8px, 0); }
+      55% { opacity: 0.82; transform: translate3d(0, 1px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .shop-divider {
+      width: 68.72vw;
+      height: 0.13vw;
+      background: #F0F0F0;
+      margin-left: auto;
+      margin-right: 3.59vw;
+      margin-top: 3.08vw;
+      margin-bottom: 3.08vw;
+      flex-shrink: 0;
+    }
+    /* 素材尚未补齐的分类：简单占位提示 */
+    .category-list__placeholder {
+      padding: 12vw 6vw;
+      text-align: center;
+      color: #999999;
+      font-size: 3.33vw;
+      line-height: 1.6;
+    }
+
+    /* 底部安全区 */
+    .safe-area-bottom {
+      height: 8.72vw;
+      background: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 共享元素转场：卡片上浮、20% 蒙层、白色内容区拉高 -->
+  <div class="category-transition" id="categoryTransition" aria-hidden="true">
+<div class="category-transition__mask"></div>
+<div class="category-transition__sheet"><div class="category-transition__content" id="categoryTransitionContent"></div></div>
+<div class="category-transition__card" id="categoryTransitionCard"></div>
+  </div>
+
+  <!-- ============================================================
+       展开面板：菜品分类下拉
+       ============================================================ -->
+  <div class="expand-panel" id="expandPanel">
+    <div class="expand-panel__mask" id="expandPanelMask"></div>
+    <div class="expand-panel__content">
+      <div class="expand-panel__nav">
+        <div class="expand-panel__nav-left">
+          <div class="expand-panel__nav-back"><img src="assets/nav-back-dark.webp" alt="返回"></div>
+          <div class="expand-panel__nav-city"><img src="assets/nav-city-dark.webp" alt="上海"></div>
+        </div>
+        <div class="expand-panel__nav-logo"><img src="assets/nav-logo-dark.webp" alt="王牌菜榜"></div>
+        <div class="expand-panel__nav-right">
+          <div class="expand-panel__nav-icon"><img src="assets/nav-share-dark.webp" alt="分享"></div>
+          <div class="expand-panel__nav-icon"><img src="assets/nav-more-dark.webp" alt="更多"></div>
+        </div>
+      </div>
+
+      <div class="expand-panel__search">
+        <div class="expand-panel__search-icon">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </div>
+        <span class="expand-panel__search-text">搜索菜品</span>
+      </div>
+
+      <div class="expand-panel__section">
+        <div class="expand-panel__section-title">当地特色</div>
+        <div class="expand-panel__grid">
+          <div class="expand-panel__grid-item" data-dish="all"><div class="expand-panel__grid-img"><img src="assets/tab-all-v2.webp" alt="全部"></div><span class="expand-panel__grid-label">全部</span></div>
+          <div class="expand-panel__grid-item" data-dish="baizhanji"><div class="expand-panel__grid-img"><img src="assets/tab-baizhanji.webp" alt="白斩鸡"></div><span class="expand-panel__grid-label">白斩鸡</span></div>
+          <div class="expand-panel__grid-item" data-dish="xiaolongbao"><div class="expand-panel__grid-img"><img src="assets/tab-xiaolongbao.webp" alt="小笼包"></div><span class="expand-panel__grid-label">小笼包</span></div>
+          <div class="expand-panel__grid-item" data-dish="hongsharou"><div class="expand-panel__grid-img"><img src="assets/tab-hongsharou.webp" alt="红烧肉"></div><span class="expand-panel__grid-label">红烧肉</span></div>
+          <div class="expand-panel__grid-item" data-dish="congyoubanmian"><div class="expand-panel__grid-img"><img src="assets/tab-congyoubanmian.webp" alt="葱油拌面"></div><span class="expand-panel__grid-label">葱油拌面</span></div>
+          <div class="expand-panel__grid-item" data-dish="zhazhuipai"><div class="expand-panel__grid-img"><img src="assets/tab-zhazhuipai.webp" alt="炸猪排"></div><span class="expand-panel__grid-label">炸猪排</span></div>
+          <div class="expand-panel__grid-item" data-dish="xunyu"><div class="expand-panel__grid-img"><img src="assets/tab-熏鱼.webp" alt="熏鱼"></div><span class="expand-panel__grid-label">熏鱼</span></div>
+          <div class="expand-panel__grid-item" data-dish="caifan"><div class="expand-panel__grid-img"><img src="assets/tab-菜饭.webp" alt="菜饭"></div><span class="expand-panel__grid-label">菜饭</span></div>
+          <div class="expand-panel__grid-item" data-dish="shengjian"><div class="expand-panel__grid-img"><img src="assets/tab-生煎.webp" alt="生煎"></div><span class="expand-panel__grid-label">生煎</span></div>
+          <div class="expand-panel__grid-item" data-dish="paigunianggao"><div class="expand-panel__grid-img"><img src="assets/tab-排骨年糕.webp" alt="排骨年糕"></div><span class="expand-panel__grid-label">排骨年糕</span></div>
+          <div class="expand-panel__grid-item" data-dish="xiefendoufu"><div class="expand-panel__grid-img"><img src="assets/tab-蟹粉豆腐.webp" alt="蟹粉豆腐"></div><span class="expand-panel__grid-label">蟹粉豆腐</span></div>
+          <div class="expand-panel__grid-item" data-dish="xiangyoushansi"><div class="expand-panel__grid-img"><img src="assets/tab-响油鳝丝.webp" alt="响油鳝丝"></div><span class="expand-panel__grid-label">响油鳝丝</span></div>
+          <div class="expand-panel__grid-item" data-dish="xiehuangmian"><div class="expand-panel__grid-img"><img src="assets/tab-蟹黄面.webp" alt="蟹黄面"></div><span class="expand-panel__grid-label">蟹黄面</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       吸顶层：状态栏 + 导航栏 + 分类Tab
+       ============================================================ -->
+  <div class="sticky-header" id="stickyHeader">
+    <div class="status-bar"></div>
+    <nav class="nav-bar">
+      <div class="nav-bar__left">
+        <div class="nav-bar__back"><img src="assets/nav-back.webp" alt="返回"></div>
+        <div class="nav-bar__city"><img src="assets/nav-city.webp" alt="上海"></div>
+      </div>
+      <div class="nav-bar__logo"><img src="assets/nav-sticky-logo.webp" alt="王牌菜榜"></div>
+      <span class="nav-bar__title" id="stickyTitle"></span>
+      <div class="nav-bar__right">
+        <div class="nav-bar__icon"><img src="assets/nav-share.webp" alt="分享"></div>
+        <div class="nav-bar__icon"><img src="assets/nav-more.webp" alt="更多"></div>
+      </div>
+    </nav>
+    <div class="category-tabs">
+      <div class="category-tabs__wrapper">
+        <div class="category-tabs__scroll" id="stickyTabsScroll">
+          <!-- Tab 列表由 JS 统一渲染（与头图区 Tab 完全同步） -->
+        </div>
+        <div class="category-tabs__expand">
+          <img class="category-tabs__expand-bg" src="assets/tab-expand-bg.webp" alt="展开">
+          <img class="category-tabs__expand-arrow" src="assets/tab-expand-arrow.webp" alt="">
+        </div>
+      </div>
+    </div>
+    <img class="sticky-header__corner" src="assets/sticky-tabs-corner.webp" alt="">
+  </div>
+
+  <!-- ============================================================
+       模块 A+B：头图区（切到具体分类 Tab 时收起）
+       ============================================================ -->
+  <div class="hero" id="hero">
+    <div class="hero__bg">
+      <video autoplay loop muted playsinline>
+        <source src="assets/hero-bg.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="status-bar"></div>
+
+    <nav class="nav-bar">
+      <div class="nav-bar__left">
+        <div class="nav-bar__back"><img src="assets/nav-back.webp" alt="返回"></div>
+        <div class="nav-bar__city"><img src="assets/nav-city.webp" alt="上海"></div>
+      </div>
+      <div class="nav-bar__right">
+        <div class="nav-bar__icon"><img src="assets/nav-share.webp" alt="分享"></div>
+        <div class="nav-bar__icon"><img src="assets/nav-more.webp" alt="更多"></div>
+      </div>
+    </nav>
+
+    <!-- 菜品分类 Tab（叠加在背景图底部） -->
+    <div class="category-tabs">
+      <div class="category-tabs__wrapper">
+        <div class="category-tabs__scroll" id="heroTabsScroll">
+          <!-- Tab 列表由 JS 统一渲染 -->
+        </div>
+        <div class="category-tabs__expand">
+          <img class="category-tabs__expand-bg" src="assets/tab-expand-bg.webp" alt="展开">
+          <img class="category-tabs__expand-arrow" src="assets/tab-expand-arrow.webp" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       内容区：【全部】瀑布流 / 【单分类】商户列表，二选一展示
+       ============================================================ -->
+  <div class="content-area" id="contentArea">
+
+    <!-- ---------- 内容态 1：全部（默认展示） ---------- -->
+    <div class="rank-list-wrapper" id="allContent">
+      <div class="rank-list">
+
+        <div class="rank-card" data-category="baizhanji">
+          <div class="rank-card__header rank-card__header--split">
+            <div class="rank-card__header-inner">
+              <img class="rank-card__header-top" src="assets/card-bg-baizhanji-top.webp" alt="">
+              <div class="rank-card__header-mid" style="background-image: url('assets/card-bg-baizhanji-mid.webp');"></div>
+              <img class="rank-card__header-bottom" src="assets/card-bg-baizhanji-bottom.webp" alt="">
+            </div>
+          </div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-baizhanji-1.webp" alt="苏小柳点心·手"></div>
+            <div class="shop-card"><img src="assets/shop-baizhanji-2.webp" alt="渔水之家柴火菜"></div>
+            <div class="shop-card"><img src="assets/shop-baizhanji-3.webp" alt="老兴鲜(黄浦店)"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="xiaolongbao">
+          <div class="rank-card__header rank-card__header--split">
+            <div class="rank-card__header-inner">
+              <img class="rank-card__header-top" src="assets/card-bg-xiaolongbao-top.webp" alt="">
+              <div class="rank-card__header-mid" style="background-image: url('assets/card-bg-xiaolongbao-mid.webp');"></div>
+              <img class="rank-card__header-bottom" src="assets/card-bg-xiaolongbao-bottom.webp" alt="">
+            </div>
+          </div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-1.webp" alt="屋有鲜"></div>
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-2.webp" alt="莱莱小笼·乔艾"></div>
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-3.webp" alt="馋三尺蟹粉小笼"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="hongsharou">
+          <div class="rank-card__header rank-card__header--split">
+            <div class="rank-card__header-inner">
+              <img class="rank-card__header-top" src="assets/card-bg-hongsharou-top.webp" alt="">
+              <div class="rank-card__header-mid" style="background-image: url('assets/card-bg-hongsharou-mid.webp');"></div>
+              <img class="rank-card__header-bottom" src="assets/card-bg-hongsharou-bottom.webp" alt="">
+            </div>
+          </div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-hongsharou-1.webp" alt="逸道（益丰·外"></div>
+            <div class="shop-card"><img src="assets/shop-hongsharou-2.webp" alt="人和馆·上海菜"></div>
+            <div class="shop-card"><img src="assets/shop-hongsharou-3.webp" alt="忆家一宴（南"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="congyoubanmian">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-congyoubanmian.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-1.webp" alt="厢房（陆家嘴中"></div>
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-2.webp" alt="福和面馆（昆山"></div>
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-3.webp" alt="沪西老弄堂"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="zhazhuipai">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-zhazhuipai.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-zhazhuipai-1.webp" alt="小熊匠日本料理"></div>
+            <div class="shop-card"><img src="assets/shop-zhazhuipai-2.webp" alt="哈灵现炒上海本"></div>
+            <div class="shop-card"><img src="assets/shop-zhazhuipai-3.webp" alt="蟹太太蟹黄面"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="xunyu">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-baizhanji.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-baizhanji-1.webp" alt="熏鱼商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-baizhanji-2.webp" alt="熏鱼商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-baizhanji-3.webp" alt="熏鱼商户推荐 3"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="caifan">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-xiaolongbao.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-1.webp" alt="菜饭商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-2.webp" alt="菜饭商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-3.webp" alt="菜饭商户推荐 3"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="shengjian">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-congyoubanmian.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-1.webp" alt="生煎商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-2.webp" alt="生煎商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-3.webp" alt="生煎商户推荐 3"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="paigunianggao">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-zhazhuipai.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-zhazhuipai-1.webp" alt="排骨年糕商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-zhazhuipai-2.webp" alt="排骨年糕商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-zhazhuipai-3.webp" alt="排骨年糕商户推荐 3"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="xiefendoufu">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-baizhanji.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-baizhanji-1.webp" alt="蟹粉豆腐商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-baizhanji-2.webp" alt="蟹粉豆腐商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-baizhanji-3.webp" alt="蟹粉豆腐商户推荐 3"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="xiangyoushansi">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-xiaolongbao.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-1.webp" alt="响油鳝丝商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-2.webp" alt="响油鳝丝商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-xiaolongbao-3.webp" alt="响油鳝丝商户推荐 3"></div>
+          </div>
+        </div>
+
+        <div class="rank-card" data-category="xiehuangmian">
+          <div class="rank-card__header" style="background-image: url('assets/card-bg-congyoubanmian.webp');"></div>
+          <div class="rank-card__shops">
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-1.webp" alt="蟹黄面商户推荐 1"></div>
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-2.webp" alt="蟹黄面商户推荐 2"></div>
+            <div class="shop-card"><img src="assets/shop-congyoubanmian-3.webp" alt="蟹黄面商户推荐 3"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ---------- 内容态 2：单分类商户列表（白斩鸡） ---------- -->
+    <div class="category-list" id="category-baizhanji" data-category-panel="baizhanji">
+      <div class="category-list__header">
+        <img class="category-list__header-full" src="assets/header-full-baizhanji.webp" alt="上海 · 白斩鸡榜">
+      </div>
+      <div class="category-list__main">
+        <div class="category-list__shops">
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-1.webp" alt="苏小柳点心·手作小笼包(康桥分院)" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-2.webp" alt="渔水之家柴火菜饭（人民广场店）" data-href="shop-detail-renhe.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-3.webp" alt="老兴鲜（黄浦店）" data-href="shop-detail-yijia.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-4.webp" alt="兴兴·海派本帮菜" data-href="shop-detail-heji.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-5.webp" alt="原乡楼（朱家角古镇店）" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-6.webp" alt="阿明小菜·海鲜·上海菜（东方路店）" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-baizhanji-full-7.webp" alt="道道鲜·崇明私房菜（延安西路店）" data-href="shop-detail.html">
+        </div>
+      </div>
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ---------- 内容态 2：单分类商户列表（小笼包） ---------- -->
+    <div class="category-list" id="category-xiaolongbao" data-category-panel="xiaolongbao">
+      <div class="category-list__header">
+        <img class="category-list__header-full" src="assets/header-full-xiaolongbao.webp" alt="上海 · 小笼包榜">
+      </div>
+      <div class="category-list__main">
+        <div class="category-list__shops">
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-1.webp" alt="屋有鲜" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-2.webp" alt="莱莱小笼·乔艾" data-href="shop-detail-renhe.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-3.webp" alt="馋三尺蟹粉小笼（人民广场店）" data-href="shop-detail-yijia.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-4.webp" alt="佳佳汤包" data-href="shop-detail-heji.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-5.webp" alt="熙盛源（丰庄路店）" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-6.webp" alt="上海古猗园餐厅（沪宜公路店）" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-xiaolongbao-full-7.webp" alt="庄氏隆兴·海派蟹点（上海首店）" data-href="shop-detail.html">
+        </div>
+      </div>
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ---------- 内容态 2：单分类商户列表（红烧肉，完整可跳转商户详情） ---------- -->
+    <div class="category-list" id="category-hongsharou" data-category-panel="hongsharou">
+      <div class="category-list__header">
+        <img class="category-list__header-full" src="assets/header-full-hongsharou.webp" alt="上海 · 红烧肉榜">
+      </div>
+      <div class="category-list__main">
+        <div class="category-list__shops">
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-1.webp" alt="逸道（益丰·外滩源店）" data-href="shop-detail-yidao.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-2.webp" alt="人和馆·上海菜（徐汇店）" data-href="shop-detail-renhe.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-3.webp" alt="忆家一宴（南丹东路总店）" data-href="shop-detail-yijia.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-4.webp" alt="和记小菜（控江店）" data-href="shop-detail-heji.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-5.webp" alt="御廷公馆·上海菜（新世纪新丸）" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-6.webp" alt="福1088" data-href="shop-detail.html">
+          <div class="shop-divider"></div>
+          <img class="shop-card-img" src="assets/shop-hongsharou-full-7.webp" alt="品筵·本帮菜·海鲜（中华路店）" data-href="shop-detail.html">
+        </div>
+      </div>
+      <div class="safe-area-bottom"></div>
+    </div>
+
+    <!-- ---------- 内容态 2：其余分类暂无完整商户素材，占位提示 ---------- -->
+    <div class="category-list" id="category-congyoubanmian" data-category-panel="congyoubanmian">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-zhazhuipai" data-category-panel="zhazhuipai">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-xunyu" data-category-panel="xunyu">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-caifan" data-category-panel="caifan">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-shengjian" data-category-panel="shengjian">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-paigunianggao" data-category-panel="paigunianggao">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-xiefendoufu" data-category-panel="xiefendoufu">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-xiangyoushansi" data-category-panel="xiangyoushansi">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+    <div class="category-list" id="category-xiehuangmian" data-category-panel="xiehuangmian">
+      <div class="category-list__placeholder">该分类榜单正在完善中，敬请期待</div>
+      <div class="safe-area-bottom"></div>
+    </div>
+
+  </div>
+
+  <!-- 底部安全区（【全部】瀑布流态使用） -->
+  <div class="safe-area-bottom" id="allSafeArea"></div>
+
+  <!-- ============================================================
+       交互脚本
+       ============================================================ -->
+  <script>
+    // ---------- 分类数据（用于统一渲染两处 Tab：头图区 + 吸顶层） ----------
+    var categories = [
+      { key: 'all', label: '全部', icon: 'assets/tab-all-v2.webp', iconActive: 'assets/tab-all-active-v2.webp' },
+      { key: 'baizhanji', label: '白斩鸡', icon: 'assets/tab-baizhanji.webp' },
+      { key: 'xiaolongbao', label: '小笼包', icon: 'assets/tab-xiaolongbao.webp' },
+      { key: 'hongsharou', label: '红烧肉', icon: 'assets/tab-hongsharou.webp' },
+      { key: 'congyoubanmian', label: '葱油拌面', icon: 'assets/tab-congyoubanmian.webp' },
+      { key: 'zhazhuipai', label: '炸猪排', icon: 'assets/tab-zhazhuipai.webp' },
+      { key: 'xunyu', label: '熏鱼', icon: 'assets/tab-熏鱼.webp' },
+      { key: 'caifan', label: '菜饭', icon: 'assets/tab-菜饭.webp' },
+      { key: 'shengjian', label: '生煎', icon: 'assets/tab-生煎.webp' },
+      { key: 'paigunianggao', label: '排骨年糕', icon: 'assets/tab-排骨年糕.webp' },
+      { key: 'xiefendoufu', label: '蟹粉豆腐', icon: 'assets/tab-蟹粉豆腐.webp' },
+      { key: 'xiangyoushansi', label: '响油鳝丝', icon: 'assets/tab-响油鳝丝.webp' },
+      { key: 'xiehuangmian', label: '蟹黄面', icon: 'assets/tab-蟹黄面.webp' }
+    ];
+
+    function renderTabs(container) {
+      categories.forEach(function(cat) {
+        var tab = document.createElement('div');
+        tab.className = 'category-tab' + (cat.key === 'all' ? ' category-tab--active' : '');
+        if (container.id === 'stickyTabsScroll' && cat.key === 'all') tab.classList.add('category-tab--fixed-all');
+        tab.dataset.category = cat.key;
+
+        var imgWrap = document.createElement('div');
+        imgWrap.className = 'category-tab__img-wrap';
+        var img = document.createElement('img');
+        img.className = 'category-tab__img';
+        img.src = cat.key === 'all' ? (cat.iconActive || cat.icon) : cat.icon;
+        img.alt = cat.label;
+        if (cat.iconActive) {
+          img.dataset.icon = cat.icon;
+          img.dataset.iconActive = cat.iconActive;
+        }
+        imgWrap.appendChild(img);
+        tab.appendChild(imgWrap);
+
+        var label = document.createElement('span');
+        label.className = 'category-tab__label';
+        label.textContent = cat.label;
+        tab.appendChild(label);
+
+        container.appendChild(tab);
+      });
+    }
+    renderTabs(document.getElementById('heroTabsScroll'));
+    renderTabs(document.getElementById('stickyTabsScroll'));
+
+    // ---------- 展开面板：点击箭头打开/关闭 ----------
+    var expandPanel = document.getElementById('expandPanel');
+    var expandPanelMask = document.getElementById('expandPanelMask');
+    var expandBtns = document.querySelectorAll('.category-tabs__expand');
+
+    function openExpandPanel() {
+      expandBtns.forEach(function(btn) { btn.classList.add('category-tabs__expand--active'); });
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() {
+        expandPanel.classList.add('expand-panel--visible');
+      }, 0);
+    }
+    function closeExpandPanel() {
+      expandBtns.forEach(function(btn) { btn.classList.remove('category-tabs__expand--active'); });
+      expandPanel.classList.remove('expand-panel--visible');
+      document.body.style.overflow = '';
+    }
+    expandBtns.forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openExpandPanel();
+      });
+    });
+    expandPanelMask.addEventListener('click', closeExpandPanel);
+    document.querySelectorAll('.expand-panel__grid-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var category = this.dataset.dish;
+        closeExpandPanel();
+        if (category) {
+          switchCategory(category);
+        }
+      });
+    });
+
+    // ---------- Tab 选中态同步（头图区与吸顶层双向同步） ----------
+    function setActiveTab(key) {
+      document.querySelectorAll('.category-tab').forEach(function(t) {
+        var isActive = t.dataset.category === key;
+        t.classList.toggle('category-tab--active', isActive);
+        var tabImg = t.querySelector('.category-tab__img');
+        if (tabImg && tabImg.dataset.iconActive) {
+          tabImg.src = (t.dataset.category === key) ? tabImg.dataset.iconActive : tabImg.dataset.icon;
+        }
+      });
+document.querySelectorAll('.category-tab--active').forEach(function(activeTab) {
+var scrollContainer = activeTab.closest('.category-tabs__scroll');
+if (!scrollContainer) return;
+var tabLeft = activeTab.offsetLeft;
+var tabWidth = activeTab.offsetWidth;
+var fixedAllTab = scrollContainer.querySelector('.category-tab--fixed-all');
+if (fixedAllTab && activeTab !== fixedAllTab) {
+  // 吸顶态为左侧固定“全部”预留空间，其他 Tab 在余下区域内滑动定位。
+  var fixedWidth = fixedAllTab.offsetWidth;
+  var availableWidth = scrollContainer.clientWidth - fixedWidth - 18.85 * window.innerWidth / 100;
+  var targetScrollLeft = Math.max(0, tabLeft - fixedWidth - (availableWidth - tabWidth) / 2);
+  scrollContainer.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+  return;
+}
+var containerWidth = scrollContainer.clientWidth;
+var targetScrollLeft = tabLeft - (containerWidth - tabWidth) / 2;
+scrollContainer.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+});
+    }
+
+    // ---------- 核心：切换内容态（全部 瀑布流 <-> 单分类 商户列表） ----------
+    var hero = document.getElementById('hero');
+    var stickyHeader = document.getElementById('stickyHeader');
+    var stickyTitle = document.getElementById('stickyTitle');
+    var allContent = document.getElementById('allContent');
+    var allSafeArea = document.getElementById('allSafeArea');
+    var categoryLabelMap = {};
+    categories.forEach(function(c) { categoryLabelMap[c.key] = c.label; });
+
+    var currentCategory = 'all';
+    var isCategoryPreparing = false;
+    var categoryTransition = document.getElementById('categoryTransition');
+    var categoryTransitionCard = document.getElementById('categoryTransitionCard');
+var categoryTransitionContent = document.getElementById('categoryTransitionContent');
+var transitionHeaderImageMap = {
+baizhanji: 'assets/header-full-baizhanji.webp',
+xiaolongbao: 'assets/header-full-xiaolongbao.webp',
+hongsharou: 'assets/header-full-hongsharou.webp'
+};
+// 提前解码所有商户列表头图，避免首次切换时背景图等待网络或图片解码而短暂留白。
+Object.keys(transitionHeaderImageMap).forEach(function(key) {
+  var image = new Image();
+  image.src = transitionHeaderImageMap[key];
+  if (image.decode) image.decode().catch(function() {});
+});
+
+function commitCategory(key) {
+      currentCategory = key;
+      setActiveTab(key);
+
+      if (key === 'all') {
+        window.scrollTo(0, 0);
+        hero.classList.remove('hero--collapsed');
+        hero.removeAttribute('style');
+        allContent.style.display = '';
+        allSafeArea.style.display = '';
+        document.querySelectorAll('.category-list').forEach(function(panel) {
+          panel.classList.remove('category-list--active');
+        });
+        stickyHeader.classList.remove('sticky-header--category');
+        stickyTitle.textContent = '';
+        updateStickyHeader();
+        return;
+      }
+
+      hero.classList.add('hero--collapsed');
+      hero.style.maxHeight = '0px';
+      hero.style.height = '0px';
+      hero.style.paddingTop = '0px';
+hero.style.paddingBottom = '0px';
+allContent.style.display = 'none';
+      allSafeArea.style.display = 'none';
+      document.querySelectorAll('.category-list').forEach(function(panel) {
+        var isTargetPanel = panel.dataset.categoryPanel === key;
+        panel.classList.toggle('category-list--active', isTargetPanel);
+panel.classList.remove('category-list--stagger-in');
+panel.classList.toggle('category-list--transitioning-header', isTargetPanel && isCategoryPreparing);
+// 从全部页进入与吸顶 Tab 间切换均使用错峰入场；后者会在下一帧立刻触发。
+panel.classList.toggle('category-list--stagger', isTargetPanel && !!panel.querySelector('.shop-card-img'));
+      });
+// 内容替换后不强制恢复滚动位置，避免商卡数量变化时产生二次自动上滑。
+stickyHeader.classList.add('sticky-header--category');
+      stickyHeader.classList.add('sticky-header--visible');
+      stickyTitle.textContent = '';
+      // 吸顶 Tab 直接切换时，在目标面板完成布局后立即开始逐条加载动画。
+      if (!isCategoryPreparing) {
+        var activePanel = document.querySelector('.category-list--active.category-list--stagger');
+        if (activePanel) {
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              activePanel.classList.add('category-list--stagger-in');
+            });
+          });
+        }
+      }
+    }
+
+    function prepareCategorySticky(key) {
+      // 先切换状态标识，滚动事件便不会将已显示的吸顶层重新隐藏。
+      // 此阶段不收起原页面，避免浏览器滚动锚定导致视口自动位移。
+      currentCategory = key;
+      setActiveTab(key);
+      stickyHeader.classList.add('sticky-header--category');
+      stickyHeader.classList.add('sticky-header--visible');
+      stickyTitle.textContent = '';
+    }
+
+    function playCategoryTransition(key, sourceCard, sourceRect) {
+      var headerImage = transitionHeaderImageMap[key];
+      var targetPanel = document.getElementById('category-' + key);
+      var targetHeader = targetPanel && targetPanel.querySelector('.category-list__header');
+      if (!sourceCard || !headerImage || !targetHeader) {
+        commitCategory(key);
+        return;
+      }
+
+      sourceRect = sourceRect || sourceCard.getBoundingClientRect();
+      var targetImage = targetHeader.querySelector('.category-list__header-full');
+      var targetHeight = targetImage && targetImage.naturalWidth ? targetImage.naturalHeight / targetImage.naturalWidth * window.innerWidth : 50 * window.innerWidth / 100;
+      var targetTop = stickyHeader.getBoundingClientRect().height;
+      var targetMain = targetPanel.querySelector('.category-list__main');
+      // 承接层必须与最终真实列表的 main 起点完全重合。此前仅按头图底部减 3.08vw 计算，
+      // 忽略了真实列表 -23.33vw 的上叠边距，导致临时首卡在交接时向上跳约 78px。
+      var mainOverlap = targetMain ? parseFloat(getComputedStyle(targetMain).marginTop) || 0 : 0;
+      var sheetTop = targetTop + targetHeight + mainOverlap;
+      var sheetHeight = Math.max(window.innerHeight - sheetTop, 0);
+      var sheet = categoryTransition.querySelector('.category-transition__sheet');
+      var headerImagePlaceholder = null;
+      var transitionHeaderImage = null;
+      var listMainPlaceholder = null;
+      var transitionListMain = null;
+
+      // 原卡和浮层在同一帧交接，整个过程只保留一个固定 20px 圆角的视觉主体。
+      sourceCard.classList.add('rank-card--transitioning');
+      categoryTransitionCard.style.left = sourceRect.left + 'px';
+      categoryTransitionCard.style.top = sourceRect.top + 'px';
+      categoryTransitionCard.style.width = sourceRect.width + 'px';
+      categoryTransitionCard.style.height = sourceRect.height + 'px';
+      categoryTransitionCard.style.borderRadius = '20px';
+      categoryTransitionCard.style.boxShadow = 'none';
+      // 共享卡片复用最终页面的真实头图节点，不再用 background-image 创建第二张切图。
+      transitionHeaderImage = targetImage;
+      headerImagePlaceholder = document.createComment('category-transition-header-origin');
+      transitionHeaderImage.parentNode.insertBefore(headerImagePlaceholder, transitionHeaderImage);
+      categoryTransitionCard.appendChild(transitionHeaderImage);
+sheet.style.top = sourceRect.bottom + 'px';
+sheet.style.height = sheetHeight + 'px';
+categoryTransitionContent.innerHTML = '';
+categoryTransition.className = 'category-transition category-transition--active';
+      categoryTransition.setAttribute('aria-hidden', 'false');
+
+      setTimeout(function() {
+        categoryTransition.classList.add('category-transition--phase-card');
+        categoryTransitionCard.style.left = '0px';
+        categoryTransitionCard.style.top = targetTop + 'px';
+        categoryTransitionCard.style.width = '100%';
+        categoryTransitionCard.style.height = targetHeight + 'px';
+        categoryTransitionCard.style.boxShadow = 'none';
+        sheet.style.top = sheetTop + 'px';
+      }, 16);
+      setTimeout(function() {
+        categoryTransition.classList.add('category-transition--phase-sheet');
+      }, 90);
+      setTimeout(function() {
+        // 列表从共享头图下沿开始，和头图卡片一起上移；商户卡不再等头图到位才出现。
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        commitCategory(key);
+        var activePanel = document.querySelector('.category-list--active.category-list--stagger');
+        if (activePanel) {
+          transitionListMain = activePanel.querySelector('.category-list__main');
+          // 列表只保留一份真实 DOM：在原位置放置等高占位，转场中把真实节点移入承接层。
+          // 这样不会创建副本，也不会在最终态重新绘制第二份头图/商户列表。
+          listMainPlaceholder = document.createElement('div');
+          listMainPlaceholder.className = 'category-list__main-placeholder';
+          listMainPlaceholder.style.height = transitionListMain.offsetHeight + 'px';
+          listMainPlaceholder.style.marginTop = getComputedStyle(transitionListMain).marginTop;
+          transitionListMain.parentNode.insertBefore(listMainPlaceholder, transitionListMain);
+          targetPanel.classList.remove('category-list--transitioning-header');
+          targetPanel.classList.remove('category-list--handoff');
+          targetPanel.classList.remove('category-list--stagger');
+          targetPanel.classList.remove('category-list--stagger-in');
+          categoryTransitionContent.classList.add('category-list--stagger');
+          categoryTransitionContent.appendChild(transitionListMain);
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              categoryTransitionContent.classList.add('category-list--stagger-in');
+            });
+          });
+        }
+      }, 24);
+      setTimeout(function() {
+        // 等最后一张临时商户卡完成入场后再交接；此时两层坐标一致且均为最终不透明状态。
+        categoryTransition.classList.add('category-transition--handoff');
+        setTimeout(function() {
+          // 承接层仍完整覆盖页面时归还同一份真实列表与真实头图节点。
+          if (transitionListMain && listMainPlaceholder && listMainPlaceholder.parentNode) {
+            listMainPlaceholder.parentNode.insertBefore(transitionListMain, listMainPlaceholder);
+            listMainPlaceholder.remove();
+          }
+          if (transitionHeaderImage && headerImagePlaceholder && headerImagePlaceholder.parentNode) {
+            headerImagePlaceholder.parentNode.insertBefore(transitionHeaderImage, headerImagePlaceholder);
+            headerImagePlaceholder.remove();
+          }
+          categoryTransition.className = 'category-transition';
+          targetPanel.classList.remove('category-list--transitioning-header');
+          sourceCard.classList.remove('rank-card--transitioning');
+          categoryTransitionCard.removeAttribute('style');
+          sheet.removeAttribute('style');
+          categoryTransitionContent.classList.remove('category-list--stagger', 'category-list--stagger-in');
+          categoryTransitionContent.innerHTML = '';
+          categoryTransition.setAttribute('aria-hidden', 'true');
+          isCategoryPreparing = false;
+        }, 80);
+      }, 990);
+    }
+
+    function playCategoryReverseTransition() {
+      if (currentCategory === 'all' || isCategoryPreparing || categoryTransition.classList.contains('category-transition--active')) return;
+      var key = currentCategory;
+      var sourceCard = document.querySelector('.rank-card[data-category="' + key + '"]');
+      var activePanel = document.getElementById('category-' + key);
+      var headerImage = activePanel && activePanel.querySelector('.category-list__header-full');
+      if (!sourceCard || !headerImage) {
+        commitCategory('all');
+        return;
+      }
+
+      var listSnapshot = activePanel.querySelector('.category-list__main').outerHTML;
+      // 返回时不再创建从列表头部飞出的共享头图卡片；首页菜卡自己做轻微回落承接。
+      commitCategory('all');
+      sourceCard.classList.add('rank-card--reverse-return');
+      categoryTransitionContent.innerHTML = '<div class="category-list category-list--active">' + listSnapshot + '</div>';
+      categoryTransition.className = 'category-transition category-transition--active category-transition--reverse';
+      categoryTransition.setAttribute('aria-hidden', 'false');
+      // 反向时让当前列表仍留在原位并渐隐；不再用 handoff 直接隐藏，避免白色空屏。
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          // 列表先离场，菜卡稍后回落，形成清晰但克制的反向承接。
+          categoryTransition.classList.add('category-transition--reverse-fade');
+          setTimeout(function() {
+            sourceCard.classList.remove('rank-card--reverse-return');
+          }, 70);
+        });
+      });
+
+      setTimeout(function() {
+        // 只清理列表渐隐快照，整个返回过程没有额外头图卡片。
+        categoryTransition.className = 'category-transition';
+        categoryTransitionCard.removeAttribute('style');
+        categoryTransitionCard.innerHTML = '';
+        categoryTransitionContent.innerHTML = '';
+        categoryTransition.setAttribute('aria-hidden', 'true');
+        sourceCard.classList.remove('rank-card--reverse-return');
+        isCategoryPreparing = false;
+      }, 420);
+    }
+
+    function switchCategory(key, sourceCard) {
+      if (currentCategory === key || isCategoryPreparing || categoryTransition.classList.contains('category-transition--active')) return;
+      if (currentCategory === 'all' && key !== 'all') {
+        isCategoryPreparing = true;
+        var transitionSource = sourceCard || document.querySelector('.rank-card[data-category="' + key + '"]');
+        var transitionSourceRect = transitionSource && transitionSource.getBoundingClientRect();
+        prepareCategorySticky(key);
+        requestAnimationFrame(function() {
+          playCategoryTransition(key, transitionSource, transitionSourceRect);
+        });
+        return;
+      }
+      // 吸顶 Tab 间切换不走卡片转场，立即展示目标列表且不保留准备态。
+      isCategoryPreparing = false;
+      commitCategory(key);
+    }
+
+    // 点击 Tab：切换分类（含【全部】）
+    document.querySelectorAll('.category-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        if (this.dataset.category === 'all' && currentCategory !== 'all') {
+          playCategoryReverseTransition();
+          return;
+        }
+        switchCategory(this.dataset.category);
+      });
+    });
+// 顶部返回图标仅作视觉展示：首页与商户列表页均不可点击。
+// 商户列表返回首页统一由「全部」Tab 的反向转场完成。
+
+// 点击【全部】瀑布流里的菜品榜单卡片：直接进入该分类的商户列表态
+    document.querySelectorAll('.rank-card[data-category]').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        // 命中商户横滑区域时不触发整卡跳转，保留横滑区自身的滚动/点击行为
+        if (e.target.closest('.rank-card__shops')) return;
+        switchCategory(this.dataset.category, this);
+      });
+    });
+
+    // ---------- 下滑吸顶（仅【全部】态下由滚动位置触发） ----------
+    var navBarEl = document.querySelector('.hero .nav-bar');
+    var ticking = false;
+    function updateStickyHeader() {
+      if (currentCategory !== 'all') return; // 单分类态下吸顶层常驻显示，不受滚动影响
+      var triggerOffset = navBarEl.offsetTop + navBarEl.offsetHeight;
+      var shouldShow = window.scrollY >= triggerOffset;
+      stickyHeader.classList.toggle('sticky-header--visible', shouldShow);
+      ticking = false;
+    }
+    function onScroll() {
+      if (!ticking) {
+        setTimeout(function() {
+          updateStickyHeader();
+          ticking = false;
+        }, 16);
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('touchmove', onScroll, { passive: true });
+    window.addEventListener('resize', updateStickyHeader);
+
+// ---------- 商户详情页：使用预解码整页切图即时打开，避免 iframe 首帧合成卡顿 ----------
+var detailImageMap = {
+  'shop-detail-yidao.html': 'assets/shop-detail-yidao.webp',
+  'shop-detail.html': 'assets/shop-detail-full.webp',
+  'shop-detail-renhe.html': 'assets/shop-detail-renhe.webp',
+  'shop-detail-yijia.html': 'assets/shop-detail-yijia.webp',
+  'shop-detail-heji.html': 'assets/shop-detail-heji.webp'
+};
+var detailOverlay = document.createElement('div');
+detailOverlay.className = 'detail-page-overlay';
+var detailOverlayImage = document.createElement('img');
+detailOverlayImage.className = 'detail-page-overlay__img';
+detailOverlayImage.alt = '商户详情';
+var detailOverlayBack = document.createElement('button');
+detailOverlayBack.className = 'detail-page-overlay__back';
+detailOverlayBack.type = 'button';
+detailOverlayBack.setAttribute('aria-label', '返回');
+var detailRankBack = document.createElement('button');
+detailRankBack.className = 'detail-page-overlay__rank-back';
+detailRankBack.type = 'button';
+detailRankBack.setAttribute('aria-label', '返回王牌菜榜红烧肉榜');
+detailOverlay.appendChild(detailOverlayImage);
+detailOverlay.appendChild(detailOverlayBack);
+detailOverlay.appendChild(detailRankBack);
+document.body.appendChild(detailOverlay);
+// 页面空闲时只解码详情切图，不创建和渲染多个全屏 iframe。
+Object.keys(detailImageMap).forEach(function(href) {
+  var image = new Image();
+  image.src = detailImageMap[href];
+  if (image.decode) image.decode().catch(function() {});
+});
+function closeDetailOverlay() {
+  detailOverlay.className = 'detail-page-overlay';
+  detailOverlay.scrollTop = 0;
+}
+function returnToHongsharouRank() {
+  closeDetailOverlay();
+  commitCategory('hongsharou');
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+}
+detailOverlayBack.addEventListener('click', closeDetailOverlay);
+// 部分移动端预览环境的透明按钮不会稳定派发 click，因此同时监听 pointerup/touchend。
+var rankReturnTriggered = false;
+function triggerRankReturn(event) {
+  if (event) event.preventDefault();
+  if (rankReturnTriggered) return;
+  rankReturnTriggered = true;
+  returnToHongsharouRank();
+  setTimeout(function() { rankReturnTriggered = false; }, 300);
+}
+detailRankBack.addEventListener('click', triggerRankReturn);
+detailRankBack.addEventListener('pointerup', triggerRankReturn);
+detailRankBack.addEventListener('touchend', triggerRankReturn, { passive: false });
+// 在 Overlay 捕获阶段直接接管榜单信息区事件，不依赖透明按钮是否命中。
+function handleYidaoRankZone(event) {
+  if (!detailOverlay.classList.contains('detail-page-overlay--yidao')) return;
+  var top = window.innerWidth * 0.30;
+  var bottom = window.innerWidth * 1.06;
+  if (event.clientY >= top && event.clientY <= bottom) {
+    event.stopPropagation();
+    triggerRankReturn(event);
+  }
+}
+detailOverlay.addEventListener('pointerdown', handleYidaoRankZone, true);
+detailOverlay.addEventListener('touchstart', handleYidaoRankZone, { capture: true, passive: false });
+detailOverlay.addEventListener('click', handleYidaoRankZone, true);
+document.querySelectorAll('.shop-card-img[data-href]').forEach(function(card) {
+  card.addEventListener('click', function() {
+    var href = this.getAttribute('data-href');
+    if (!href || !detailImageMap[href]) return;
+    // 同一图层直接换入预解码切图；不等待页面请求、iframe 布局或首帧绘制。
+    detailOverlay.scrollTop = 0;
+    detailOverlayImage.src = detailImageMap[href];
+    detailOverlay.className = 'detail-page-overlay detail-page-overlay--visible' +
+      (href === 'shop-detail-yidao.html' ? ' detail-page-overlay--yidao' : '');
+  });
+});
+  </script>
+
+  <style>
+    /* 承接方案演示：半浮层/上滑态下，返回箭头切换为关闭叉号 */
+    .nav-bar__back--close { position: relative; }
+    .nav-bar__back--close img { opacity: 0; }
+    .nav-bar__back--close::before,
+    .nav-bar__back--close::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4.6vw;
+      height: 1px;
+      background: #ffffff;
+      border-radius: 999px;
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .nav-bar__back--close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    /* 承接方案演示：榜首（苏小柳点心）商卡高亮切图覆盖层，进入时闪动 3 次后消失 */
+    .category-list__shops { position: relative; }
+    .ace-card-hl-overlay {
+      position: absolute;
+      left: calc(5.13vw - 8px); /* 用户微调：左移 8px */
+      top: 0.56vw; /* 垂直居中于商卡（商卡顶 3.08vw、高 30.23vw，覆盖层高 35.27vw） */
+      width: 92.82vw;
+      height: 35.27vw; /* 切图原始纵横比 284/747，纵向拉高不压扁 */
+      pointer-events: none;
+      opacity: 0;
+      z-index: 6;
+    }
+    /* 新动效：快速淡入（0→100%，500ms）→ 保持 100% 停留 1.5s → 快速消失 */
+    @keyframes ace-card-hl-flash {
+      0% { opacity: 0; }
+      23.8% { opacity: 1; }  /* 0.5s / 2.1s 总时长 */
+      95.2% { opacity: 1; }  /* 保持到 2.0s */
+      100% { opacity: 0; }   /* 2.0s → 2.1s 消失 */
+    }
+    .ace-card-hl-overlay--play { animation: ace-card-hl-flash 2.1s linear both; }
+  </style>
+
+  <script>
+    // ---------- 承接方案演示支持：URL 指定初始分类 tab + postMessage 重置 ----------
+    function applyDemoInitialTab() {
+      var match = (location.search || '').match(/[?&]tab=([a-zA-Z]+)/);
+      var tab = match ? match[1] : '';
+      if (tab && tab !== 'all' && typeof commitCategory === 'function' && typeof categoryLabelMap !== 'undefined' && categoryLabelMap[tab]) {
+        commitCategory(tab);
+      }
+    }
+    var aceNavMode = 'left';
+    function applyAceNavMode(mode) {
+      aceNavMode = mode;
+      var close = mode === 'half' || mode === 'up';
+      document.querySelectorAll('.nav-bar__back').forEach(function (el) {
+        el.classList.toggle('nav-bar__back--close', close);
+      });
+    }
+    window.addEventListener('message', function (e) {
+      if (e && e.data === 'ace:reset-tab') {
+        window.scrollTo(0, 0);
+        if (typeof commitCategory === 'function') commitCategory('baizhanji');
+      } else if (e && typeof e.data === 'string' && e.data.indexOf('ace:mode:') === 0) {
+        applyAceNavMode(e.data.slice(9));
+      } else if (e && e.data === 'ace:highlight-card') {
+        replayCardHighlight();
+      }
+    });
+    // 榜首（苏小柳点心）商卡高亮切图覆盖层：每次进入王牌菜榜时闪动 3 次后消失
+    function replayCardHighlight() {
+      try {
+        var shops = document.querySelector('#category-baizhanji .category-list__shops');
+        if (!shops) return;
+        var ov = document.getElementById('aceCardHl');
+        if (!ov) {
+          ov = document.createElement('img');
+          ov.id = 'aceCardHl';
+          ov.className = 'ace-card-hl-overlay';
+          ov.src = 'assets/card-highlight.webp';
+          ov.alt = '';
+          shops.appendChild(ov);
+        }
+        ov.classList.remove('ace-card-hl-overlay--play');
+        void ov.offsetWidth; /* 强制重排以重启动画 */
+        ov.classList.add('ace-card-hl-overlay--play');
+      } catch (err) {}
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', applyDemoInitialTab);
+    } else {
+      applyDemoInitialTab();
+    }
+  </script>
+
+</body>
+</html>
