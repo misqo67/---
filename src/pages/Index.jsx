@@ -389,7 +389,7 @@ export default function Index() {
                 className="block text-center active:opacity-80"
                 style={{
                   borderRadius: "0 8px 8px 0",
-                  padding: "7px 4px 7px 6px",
+                  padding: "7px 6px 7px 4px",
                   fontSize: 10,
                   lineHeight: "13px",
                   color: "rgba(255,255,255,0.9)",
