@@ -301,10 +301,11 @@ export default function Index() {
                     iframeRef.current?.contentWindow?.postMessage("ace:mode:" + schemeRef.current, "*");
                   } catch (err) {}
                 }}
-                className="absolute left-0 border-0 bg-white"
+                className="absolute left-0 border-0"
                 style={{
                   width: SCREEN_W,
                   height: SCREEN_H,
+                  background: "#1A1008",
                   top: scheme === "half" && ace === "half" ? -ACE_TOP_CROP : 0,
                   transition: dragging || !animOn ? "none" : `top 0.4s ${EASE}`,
                 }}
