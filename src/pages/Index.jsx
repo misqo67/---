@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import aceStandaloneRaw from "../ace-standalone.html?raw";
+import { useState, useRef, useEffect, useCallback } from "react";
 import homePageImg from "../assets/homepage.webp";
 import centerPageImg from "../assets/ranking-center.webp";
 import aceIconImg from "../assets/ace-icon.webp";
@@ -48,7 +47,17 @@ export default function Index() {
   }, []);
 
   // 王牌菜榜自包含单文件（素材已内联），用 blob URL 承载，部署后不依赖 public 目录
-  const aceDocUrl = useMemo(() => URL.createObjectURL(new Blob([aceStandaloneRaw], { type: "text/html" })), []);
+  // ace 单文件页体积大（约10MB），拆成独立 chunk 异步加载，不阻塞首屏渲染
+  const [aceDocUrl, setAceDocUrl] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    import("../ace-standalone.html?raw").then((m) => {
+      if (alive) setAceDocUrl(URL.createObjectURL(new Blob([m.default], { type: "text/html" })));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // 演示画面固定 780×1688（2x），居中呈现
 
@@ -267,6 +276,7 @@ export default function Index() {
                 pointerEvents: ace === "closed" ? "none" : "auto",
               }}
             >
+              {aceDocUrl && (
               <iframe
                 src={aceDocUrl}
                 title="王牌菜榜"
@@ -286,6 +296,7 @@ export default function Index() {
                   transition: dragging || !animOn ? "none" : `top 0.4s ${EASE}`,
                 }}
               />
+              )}
               {/* 整页态：状态栏浮在王牌菜榜顶部安全区之上（页面自身预留了 54px 状态栏空间） */}
               {aceFull && (
                 <div
