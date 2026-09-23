@@ -6,7 +6,6 @@ import aceIconImg from "../assets/ace-icon.webp";
 
 const SCREEN_W = 390;
 const SCREEN_H = 844;
-const DISPLAY_SCALE = 2; // 页面演示固定按 780×1688（2x）呈现
 const HALF_RATIO = 0.8;
 const ACE_TOP_CROP = 40; // 方案A半浮层态裁掉的头部状态栏区域(px)，展开成整页时恢复
 const HALF_H = Math.round(SCREEN_H * HALF_RATIO);
@@ -29,10 +28,24 @@ export default function Index() {
   const [iconBounceKey, setIconBounceKey] = useState(0); // 返回时王牌菜榜 icon 扫光动效重放计数
   const [animOn, setAnimOn] = useState(true); // 切换方案瞬间关闭过渡，避免穿帮
   const [bubbleOpen, setBubbleOpen] = useState(false); // 悬浮方案切换气泡展开态
+  const [scale, setScale] = useState(1);
+  const scaleRef = useRef(1);
   const dragRef = useRef(null);
   const iframeRef = useRef(null);
   const schemeRef = useRef(scheme);
   useEffect(() => { schemeRef.current = scheme; }, [scheme]);
+
+  // 自适应不同屏幕尺寸：完整呈现手机屏幕（390×844）
+  useEffect(() => {
+    const fit = () => {
+      const s = Math.max(0.2, Math.min(window.innerWidth / SCREEN_W, window.innerHeight / SCREEN_H));
+      scaleRef.current = s;
+      setScale(s);
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
 
   // 王牌菜榜自包含单文件（素材已内联），用 blob URL 承载，部署后不依赖 public 目录
   const aceDocUrl = useMemo(() => URL.createObjectURL(new Blob([aceStandaloneRaw], { type: "text/html" })), []);
@@ -103,7 +116,7 @@ export default function Index() {
   };
   const onHandleMove = (e) => {
     if (!dragRef.current) return;
-    const dy = (e.clientY - dragRef.current.startY) / DISPLAY_SCALE;
+    const dy = (e.clientY - dragRef.current.startY) / scaleRef.current;
     const next = Math.min(SCREEN_H, Math.max(220, HALF_H - dy));
     setSheetH(next);
   };
@@ -144,7 +157,7 @@ export default function Index() {
   const panelHeight = scheme === "half" && ace === "half" ? sheetH ?? HALF_H : SCREEN_H;
 
   return (
-    <div className="min-h-screen w-full bg-[#f5f5f7] flex flex-col items-center" style={{ fontFamily: "-apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif" }}>
+    <div className="w-screen h-screen overflow-hidden bg-[#f5f5f7] flex items-center justify-center" style={{ fontFamily: "-apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif" }}>
       <style>{`
         @keyframes ace-icon-shine {
           0% { transform: translateX(-130%) skewX(-20deg); }
@@ -157,32 +170,17 @@ export default function Index() {
           will-change: transform;
         }
       `}</style>
-      {/* 顶部标题与方案切换 */}
-      <div className="w-full flex flex-col items-center pt-6 pb-3 px-4">
-        <div className="text-[17px] font-semibold text-[#1f1f1f]">王牌菜榜 · 榜单中心承接方案示意</div>
-        <div className="text-[12px] text-[#999] mt-1">首页「点评榜单」进入榜单中心页后，自动演示当前方案的承接动效；点击页面右侧「切换方案」气泡可切换方案重播对比</div>
-      </div>
-
-      {/* 手机舞台 */}
-      <div className="flex-1 flex items-start justify-center pb-8" style={{ width: "100%" }}>
+      {/* 手机屏幕（自适应不同屏幕尺寸，无外壳描边与圆角） */}
+      <div style={{ width: SCREEN_W * scale, height: SCREEN_H * scale }}>
         <div
-          className="relative rounded-[44px] bg-black shadow-2xl"
+          className="relative overflow-hidden bg-white"
           style={{
-            width: SCREEN_W * DISPLAY_SCALE + 16,
-            height: SCREEN_H * DISPLAY_SCALE + 16,
-            padding: 8,
+            width: SCREEN_W,
+            height: SCREEN_H,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
           }}
         >
-          <div
-            className="relative overflow-hidden bg-white"
-            style={{
-              width: SCREEN_W,
-              height: SCREEN_H,
-              transform: `scale(${DISPLAY_SCALE})`,
-              transformOrigin: "top left",
-              borderRadius: 36,
-            }}
-          >
             {/* ===== 底层页面（首页 / 榜单中心页）===== */}
             <div
               className="absolute inset-0"
@@ -391,6 +389,5 @@ export default function Index() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
