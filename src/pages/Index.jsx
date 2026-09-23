@@ -372,7 +372,7 @@ export default function Index() {
                         setBubbleOpen(false);
                         switchScheme(s.id);
                       }}
-                      className="text-left px-3 py-1.5 text-[11px] active:opacity-70"
+                      className="whitespace-nowrap text-left px-3 py-1.5 text-[11px] active:opacity-70"
                       style={{
                         color: scheme === s.id ? "#ff6633" : "rgba(255,255,255,0.85)",
                         fontWeight: scheme === s.id ? 600 : 400,
