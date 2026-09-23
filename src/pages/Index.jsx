@@ -171,7 +171,7 @@ export default function Index() {
         }
       `}</style>
       {/* 手机屏幕（自适应不同屏幕尺寸，无外壳描边与圆角） */}
-      <div style={{ width: SCREEN_W * scale, height: SCREEN_H * scale }}>
+      <div className="relative" style={{ width: SCREEN_W * scale, height: SCREEN_H * scale }}>
         <div
           className="relative overflow-hidden bg-white"
           style={{
@@ -353,12 +353,17 @@ export default function Index() {
               />
             )}
 
-            {/* ===== 悬浮方案切换气泡 ===== */}
-            <div className="absolute z-50 flex flex-col items-end" style={{ right: 8, top: "44%" }}>
+          </div>
+
+        {/* ===== 悬浮方案切换（屏幕左缘，外露一小部分）===== */}
+            <div
+              className="absolute z-50"
+              style={{ left: -7 * scale, top: "44%", transform: `scale(${scale})`, transformOrigin: "top left" }}
+            >
               {bubbleOpen && (
                 <div
-                  className="mb-1.5 flex flex-col overflow-hidden"
-                  style={{ borderRadius: 12, background: "rgba(17, 17, 17, 0.8)", backdropFilter: "blur(4px)" }}
+                  className="absolute flex flex-col overflow-hidden"
+                  style={{ left: "calc(100% + 6px)", top: 0, borderRadius: 12, background: "rgba(17, 17, 17, 0.8)", backdropFilter: "blur(4px)" }}
                 >
                   {SCHEMES.map((s, i) => (
                     <button
@@ -382,21 +387,22 @@ export default function Index() {
               )}
               <button
                 onClick={() => setBubbleOpen((v) => !v)}
-                className="flex items-center active:opacity-80"
+                className="block text-center active:opacity-80"
                 style={{
-                  borderRadius: 14,
-                  padding: "4px 10px",
-                  fontSize: 11,
+                  borderRadius: "8px 0 0 8px",
+                  padding: "7px 4px 7px 6px",
+                  fontSize: 10,
+                  lineHeight: "13px",
                   color: "rgba(255,255,255,0.9)",
                   background: "rgba(17, 17, 17, 0.8)",
                   backdropFilter: "blur(4px)",
                 }}
               >
-                切换方案
-                <span style={{ marginLeft: 3, fontSize: 10, color: "rgba(255,255,255,0.55)" }}>{bubbleOpen ? "<" : ">"}</span>
+                切换
+                <br />
+                方案
               </button>
             </div>
-          </div>
         </div>
       </div>
   );
