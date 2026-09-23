@@ -46,18 +46,8 @@ export default function Index() {
     return () => window.removeEventListener("resize", fit);
   }, []);
 
-  // 王牌菜榜自包含单文件（素材已内联），用 blob URL 承载，部署后不依赖 public 目录
-  // ace 单文件页体积大（约10MB），拆成独立 chunk 异步加载，不阻塞首屏渲染
-  const [aceDocUrl, setAceDocUrl] = useState(null);
-  useEffect(() => {
-    let alive = true;
-    import("../ace-standalone.html?raw").then((m) => {
-      if (alive) setAceDocUrl(URL.createObjectURL(new Blob([m.default], { type: "text/html" })));
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // 王牌菜榜页直接引用 public/ace.html（资源外置按需加载），不再内联 10MB 大包
+  const aceDocUrl = (import.meta.env.BASE_URL || "/") + "ace.html";
 
   // 演示画面固定 780×1688（2x），居中呈现
 
