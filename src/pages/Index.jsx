@@ -388,7 +388,7 @@ export default function Index() {
                 onClick={() => setBubbleOpen((v) => !v)}
                 className="block text-center active:opacity-80"
                 style={{
-                  borderRadius: "8px 0 0 8px",
+                  borderRadius: "0 8px 8px 0",
                   padding: "7px 4px 7px 6px",
                   fontSize: 10,
                   lineHeight: "13px",
