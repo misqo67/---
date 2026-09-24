@@ -95,6 +95,16 @@ export default function Index() {
     triggerCardHighlight();
   }, [triggerCardHighlight]);
 
+  // 方案A：半浮层 ⇄ 全屏切换时通知 ace 页切换 Tab 形态（半浮层=文字药丸，全屏=圆图）
+  useEffect(() => {
+    if (scheme !== "half") return;
+    try {
+      iframeRef.current?.contentWindow?.postMessage("ace:sheet:" + (ace === "full" ? "full" : "half"), "*");
+    } catch (err) {
+      /* iframe 未就绪时忽略，恢复半浮层时会有下一次通知 */
+    }
+  }, [ace, scheme]);
+
   const switchScheme = (id) => {
     if (id === scheme) return;
     setAnimOn(false);

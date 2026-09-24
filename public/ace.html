@@ -330,7 +330,7 @@ z-index: 600;
        用户向上拉动内容后移除该 class，恢复圆图 Tab
        ============================================================ */
     body.ace-tabs-text .category-tab__img-wrap { display: none; }
-    body.ace-tabs-text .category-tabs__scroll { gap: 2.05vw; align-items: center; }
+    body.ace-tabs-text .category-tabs__scroll { gap: 12px; padding-left: 16px; align-items: center; }
     body.ace-tabs-text .category-tab {
       position: relative;
       flex-direction: row;
@@ -346,22 +346,28 @@ z-index: 600;
     body.ace-tabs-text .category-tab--active {
       background: rgba(255,102,51,0.16);
     }
-    /* 文字态下“全部”也显示药丸底（覆盖吸顶遮罩底色） */
+    /* 文字态下“全部”也显示药丸底；取消吸顶遮罩（整行右移 16px，右侧留出 12+1+12 分隔空间） */
     body.ace-tabs-text .sticky-header .category-tab:first-child {
+      position: relative; /* relative 而非 static：既取消吸顶锁定，又保住分割线 ::after 的定位参照 */
+      left: auto;
+      padding: 0 4.1vw;
+      margin-right: 13px; /* 13px 右边距 + 12px flex 间距 = 25px，分割线居中后两侧各留 12px */
       background: rgba(255,255,255,0.12);
       border-radius: 999px;
     }
     body.ace-tabs-text .category-tab--active .category-tab__label { color: #FF6633; }
+    /* 文字态 Tab 栏变矮，商卡内容区上移相同高度（圆图 Tab 22.56vw - 药丸 Tab 约 12.05vw），与 Tab 自然衔接 */
+    body.ace-tabs-text .category-list__header { margin-top: 37.18vw; }
     /* “全部”与榜单 Tab 之间的细分隔线 */
     body.ace-tabs-text .category-tab--fixed-all::after {
       content: '';
       position: absolute;
-      right: 0.4vw;
+      right: -13px; /* 12px 间距 + 1px 线宽，使分割线与两侧 Tab 各距 12px */
       top: 50%;
       transform: translateY(-50%);
       width: 1px;
       height: 3.59vw;
-      background: rgba(255,255,255,0.28);
+      background: rgba(146, 123, 106, 0.2); /* #927B6A 20% */
     }
     /* 激活 Tab 下方的小箭头，指向榜单头卡 */
     body.ace-tabs-text .category-tab--active::before {
@@ -1350,9 +1356,10 @@ cursor: pointer;
     renderTabs(document.getElementById('stickyTabsScroll'));
 
     // ---------- 承接演示：半浮层初始态 Tab 仅文字药丸，向上拉动内容后出现圆图 ----------
+    var aceSheetFull = false; /* 方案A 半浮层上拉至全屏后为 true，此时始终显示圆图 */
     function updateTabMode() {
       var scrollY = window.scrollY || window.pageYOffset || 0;
-      var textMode = typeof currentCategory !== 'undefined' && currentCategory !== 'all' && scrollY <= 40;
+      var textMode = typeof currentCategory !== 'undefined' && currentCategory !== 'all' && !aceSheetFull && aceNavMode === 'half' && scrollY <= 40;
       document.body.classList.toggle('ace-tabs-text', textMode);
       ['heroTabsScroll', 'stickyTabsScroll'].forEach(function(id) {
         var wrap = document.getElementById(id);
@@ -1869,6 +1876,7 @@ document.querySelectorAll('.shop-card-img[data-href]').forEach(function(card) {
       document.querySelectorAll('.nav-bar__back').forEach(function (el) {
         el.classList.toggle('nav-bar__back--close', close);
       });
+      updateTabMode();
     }
     window.addEventListener('message', function (e) {
       if (e && e.data === 'ace:reset-tab') {
@@ -1876,6 +1884,12 @@ document.querySelectorAll('.shop-card-img[data-href]').forEach(function(card) {
         if (typeof commitCategory === 'function') commitCategory('baizhanji');
       } else if (e && typeof e.data === 'string' && e.data.indexOf('ace:mode:') === 0) {
         applyAceNavMode(e.data.slice(9));
+      } else if (e && e.data === 'ace:sheet:full') {
+        aceSheetFull = true;
+        updateTabMode();
+      } else if (e && e.data === 'ace:sheet:half') {
+        aceSheetFull = false;
+        updateTabMode();
       } else if (e && e.data === 'ace:highlight-card') {
         replayCardHighlight();
       }
