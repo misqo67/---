@@ -13,7 +13,11 @@ const SCHEMES = [
   { id: "half", label: "方案A · 半浮层", short: "方案1" },
   { id: "up", label: "方案B · 上滑整页", short: "方案2" },
   { id: "left", label: "方案C · 左滑整页", short: "方案3" },
+  { id: "shine", label: "方案D · 扫光+左滑整页", short: "方案4" },
 ];
+
+/* 方案D 复用方案C 的 ace 页形态（左滑整页/返回箭头），仅入场时序不同 */
+const aceModeOf = (s) => (s === "shine" ? "left" : s);
 
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)"; /* 快出 + 明显缓收，上滑/左滑更利落 */
 
@@ -72,7 +76,7 @@ export default function Index() {
     try {
       const win = iframeRef.current?.contentWindow;
       win?.postMessage("ace:reset-tab", "*");
-      win?.postMessage("ace:mode:" + schemeRef.current, "*");
+      win?.postMessage("ace:mode:" + aceModeOf(schemeRef.current), "*");
     } catch (err) {
       /* iframe 未就绪时由 URL 参数保证初始态 */
     }
@@ -151,9 +155,15 @@ export default function Index() {
   // 进入榜单中心页后，王牌菜榜按当前方案自动出现（每次从首页进入触发一次；从王牌菜榜返回不重复触发）
   useEffect(() => {
     if (screen !== "center") return;
-    const t = window.setTimeout(() => {
-      showAce();
-    }, 650);
+    // 方案D：进入榜单中心页先播 icon 扫光（1.6s），扫光结束后整页再从右往左滑入
+    const isShine = scheme === "shine";
+    if (isShine) setIconBounceKey((k) => k + 1);
+    const t = window.setTimeout(
+      () => {
+        showAce();
+      },
+      isShine ? 2250 : 650
+    );
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
@@ -162,7 +172,8 @@ export default function Index() {
   const aceFull = scheme === "half" ? ace === "full" : ace === "open";
 
   // 常驻面板：一个容器承载三种方案的收起/展开，iframe 只加载一次
-  const closedTransform = scheme === "left" ? "translateX(100%)" : "translateY(100%)";
+  const closedTransform =
+    scheme === "left" || scheme === "shine" ? "translateX(100%)" : "translateY(100%)";
   const panelHeight = scheme === "half" && ace === "half" ? sheetH ?? HALF_H : SCREEN_H;
 
   return (
@@ -198,7 +209,7 @@ export default function Index() {
                 transform:
                   aceFull && scheme === "up"
                     ? "scale(0.96)"
-                    : aceFull && scheme === "left"
+                    : aceFull && (scheme === "left" || scheme === "shine")
                       ? "translateX(-14%)"
                       : "none",
                 filter: isAceVisible && scheme !== "half" ? "brightness(0.92)" : "none",
@@ -272,7 +283,10 @@ export default function Index() {
                 background: "#1A1008",
                 transform: ace === "closed" ? closedTransform : "translate(0, 0)",
                 transition: dragging || !animOn ? "none" : `transform 0.38s ${EASE}, height 0.38s ${EASE}, border-radius 0.3s`,
-                boxShadow: scheme === "left" ? "-8px 0 30px rgba(0,0,0,0.18)" : "0 -8px 30px rgba(0,0,0,0.18)",
+                boxShadow:
+                  scheme === "left" || scheme === "shine"
+                    ? "-8px 0 30px rgba(0,0,0,0.18)"
+                    : "0 -8px 30px rgba(0,0,0,0.18)",
                 pointerEvents: ace === "closed" ? "none" : "auto",
               }}
             >
@@ -284,7 +298,7 @@ export default function Index() {
                 onLoad={() => {
                   setAceLoaded(true);
                   try {
-                    iframeRef.current?.contentWindow?.postMessage("ace:mode:" + schemeRef.current, "*");
+                    iframeRef.current?.contentWindow?.postMessage("ace:mode:" + aceModeOf(schemeRef.current), "*");
                   } catch (err) {}
                 }}
                 className="absolute left-0 border-0"
